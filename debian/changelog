@@ -1,0 +1,5 @@
+systemd-docker (0.2.1+dfsg-1) UNRELEASED; urgency=medium
+
+  * Initial release (Closes: #764784).
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Tue, 03 Nov 2015 01:02:25 +1100

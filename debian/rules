@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@ --buildsystem=golang --with=golang
+
+override_dh_clean:
+	dh_clean
+	## Remove Files-Excluded (when built from checkout or non-DFSG tarball):
+	$(RM) -rv `perl -0nE 'say $$1 if m{^Files\-Excluded\:\s*(.*?)(?:\n\n|Files:|Comment:)}sm;' debian/copyright`
+
+override_dh_auto_test:
+	-dh_auto_test

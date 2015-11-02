@@ -1,0 +1,44 @@
+Source: systemd-docker
+Section: devel
+Priority: extra
+Maintainer: Debian Go Packaging Team <pkg-go-maintainers@lists.alioth.debian.org>
+Uploaders: Dmitry Smirnov <onlyjob@debian.org>
+Build-Depends: debhelper (>= 9),
+               dh-golang,
+               golang-go,
+#               golang-github-docker-docker-dev,
+               golang-github-fsouza-go-dockerclient-dev
+Standards-Version: 3.9.6
+Homepage: https://github.com/ibuildthecloud/systemd-docker
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-go/packages/systemd-docker.git
+Vcs-Git: git://anonscm.debian.org/pkg-go/packages/systemd-docker.git
+XS-Go-Import-Path: github.com/ibuildthecloud/systemd-docker
+
+Package: systemd-docker
+Architecture: any
+Built-Using: ${misc:Built-Using}
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Wrapper for "docker run" to handle systemd quirks
+ systemd-docker This is a wrapper for docker run so that you can sanely
+ run Docker containers under systemd.  The key thing that this wrapper
+ does is move the container process from the cgroups setup by Docker to
+ the service unit's cgroup.  This handles a bunch of other quirks so
+ please read through documentation to get an understanding of all the
+ implications of running Docker under systemd.
+ .
+ Using this wrapper you can manage containers through systemctl or the
+ docker CLI and everything should just stay in sync.  Additionally
+ you can leverage all the cgroup functionality of systemd and
+ systemd-notify.  Why I wrote this?  The full context is in Docker
+ Issue #6791 (https://github.com/docker/docker/issues/6791)
+ and this mailing list thread
+ (https://groups.google.com/d/topic/coreos-dev/wf7G6rA7Bf4/discussion).
+ The short of it is that systemd does not actually supervise the Docker
+ container but instead the Docker client.  This makes systemd incapable
+ of reliably managing Docker containers without hitting a bunch of really
+ odd situations.  Installation Copy systemd-docker to /opt/bin (really
+ anywhere you want).  You can download/compile through the normal go
+ get github.com/ibuildthecloud/systemd-docker Quick Usage Basically, in
+ your unit file use systemd-docker run instead of docker run.  Here's an
+ example unit file that runs nginx.
