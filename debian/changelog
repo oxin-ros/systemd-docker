@@ -1,5 +1,5 @@
-systemd-docker (0.2.1+dfsg-1) UNRELEASED; urgency=medium
+systemd-docker (0.2.1+dfsg-1) unstable; urgency=medium
 
   * Initial release (Closes: #764784).
 
- -- Dmitry Smirnov <onlyjob@debian.org>  Tue, 03 Nov 2015 01:02:25 +1100
+ -- Dmitry Smirnov <onlyjob@debian.org>  Tue, 03 Nov 2015 01:55:32 +1100
