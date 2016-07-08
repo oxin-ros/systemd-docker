@@ -13,11 +13,6 @@ Files: debian/*
 Copyright: 2015 Dmitry Smirnov <onlyjob@debian.org>
 License: GPL-3+
 
-Files: debian/patches/*
-Copyright: 2015 Dmitry Smirnov <onlyjob@debian.org>
-License: GPL-3+ or Apache-2.0
-Comment: patches can be licensed under the same terms as upstream.
-
 License: GPL-3+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
