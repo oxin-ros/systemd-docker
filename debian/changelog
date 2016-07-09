@@ -2,7 +2,7 @@ systemd-docker (0.2.1+dfsg-2) UNRELEASED; urgency=medium
 
   [ Nicolas Braud-Santoni ]
   * Team upload.
-  * Fixup dependencies
+  * Fixup dependencies (Closes: #829237).
   * Bumping Standards-Version to 3.9.8
 
   [ Paul Tagliamonte ]
