@@ -6,7 +6,7 @@ Uploaders: Dmitry Smirnov <onlyjob@debian.org>
 Build-Depends: debhelper (>= 9),
                dh-golang,
                golang-go,
-               golang-github-docker-docker-dev (>= 1.11.2~ds1-2),
+               golang-github-docker-docker-dev (>= 1.11.2~),
                golang-github-fsouza-go-dockerclient-dev
 Standards-Version: 3.9.8
 Homepage: https://github.com/ibuildthecloud/systemd-docker

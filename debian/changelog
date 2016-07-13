@@ -1,14 +1,13 @@
-systemd-docker (0.2.1+dfsg-2) UNRELEASED; urgency=medium
+systemd-docker (0.2.1+dfsg-2) unstable; urgency=medium
 
   [ Nicolas Braud-Santoni ]
-  * Team upload.
-  * Fixup dependencies (Closes: #829237).
+  * Fixup dependencies (Closes: #829237)
   * Bumping Standards-Version to 3.9.8
 
   [ Paul Tagliamonte ]
   * Use a secure transport for the Vcs-Git and Vcs-Browser URL
 
- -- Nicolas Braud-Santoni <nicolas@braud-santoni.eu>  Sun, 10 Jul 2016 01:43:26 +0200
+ -- Dmitry Smirnov <onlyjob@debian.org>  Wed, 13 Jul 2016 23:27:09 +1000
 
 systemd-docker (0.2.1+dfsg-1) unstable; urgency=medium
 
