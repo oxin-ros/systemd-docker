@@ -16,7 +16,10 @@ import (
 	"time"
 
 	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
+	// flag "github.com/docker/docker/pkg/mflag"
+
+	// "github.com/weaveworks/docker/opts"
+	flag "github.com/weaveworks/docker/pkg/mflag"
 
 	dockerClient "github.com/fsouza/go-dockerclient"
 )

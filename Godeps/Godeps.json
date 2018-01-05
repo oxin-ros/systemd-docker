@@ -1,6 +1,7 @@
 {
-	"ImportPath": "github.com/ibuildthecloud/systemd-docker",
-	"GoVersion": "go1.2.2",
+	"ImportPath": "github.com/agend07/systemd-docker",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v79",
 	"Deps": [
 		{
 			"ImportPath": "github.com/docker/docker/api",
@@ -59,7 +60,6 @@
 		},
 		{
 			"ImportPath": "github.com/fsouza/go-dockerclient",
-			"Comment": "0.2.1-219-gadb8617",
 			"Rev": "adb861704259d548b45e08b5dd7b7c80efcd82e6"
 		}
 	]
