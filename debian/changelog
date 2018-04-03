@@ -1,3 +1,9 @@
+systemd-docker (0.2.1+dfsg-3) UNRELEASED; urgency=medium
+
+  * Point Vcs-* urls to salsa.debian.org.
+
+ -- Alexandre Viau <aviau@debian.org>  Mon, 02 Apr 2018 23:51:41 -0400
+
 systemd-docker (0.2.1+dfsg-2) unstable; urgency=medium
 
   [ Nicolas Braud-Santoni ]
