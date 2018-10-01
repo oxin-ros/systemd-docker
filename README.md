@@ -1,6 +1,6 @@
 # Introduction
 This repository provides a wrapper that makes Docker containers truely compatible with `systemd`. One of `systemd`'s features is that it provides a process 
-watch and failure restart policy handling but if the systemd unit for a Docker container is configured to execute `docker run` (unit file configuration 
+monitoring and failure restart policy handling. If the systemd unit for a Docker container is configured to execute `docker run` (unit file configuration 
 `ExecStart=docker run ...`), **`systemd`** is actually going to **supervise** the Docker **client process instead of the container process**. This is how 
 `docker run` works and it can lead to bunch of odd situations:
 - the client can detach or crash while the container is fine and should hence not be restarted
@@ -25,6 +25,7 @@ It can also be build using a stand-alone docker image, see [here]()
 Both
 - `systemctl` to manage systemd services, and
 - the `docker` CLI
+
 can be used and everything should stay in sync.
 
 Basically, the command is `systemd-docker run` instead of `docker run`.  Here's an unit file example to run a nginx container
