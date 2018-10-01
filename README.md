@@ -1,12 +1,13 @@
 # Introduction
-This repository provides a wrapper which improves the compatiblity of  Docker containers and `systemd`. One of `systemd`'s features is that it provides a 
-*process monitoring* and *failure restart policy handling*. If the systemd unit for a Docker container is configured to execute `docker run` (unit file 
-instruction `ExecStart=docker run ...`), **`systemd`** is actually going to **supervise** the Docker **client process instead of the container process**. 
-This is how `docker run` works and it can lead to bunch of odd situations:
+This repository provides a wrapper which solves problems that arise when Docker containers are meant to be run as `systemd` services. 
+Normally a Docker container is launched with `docker run ...` and the resulting process (the one to which the caller is attached
+to) is a Docker client process, in turn connected to the Docker container process(es). In the context of systemd, the equivalent instruction 
+`ExecStart=docker run ...` hence implies that systemd is attached to the Docker **client process instead of the container process**. 
+That leads to a bunch of odd situations:
 - the client can detach or crash while the container is fine and should hence not be restarted
-- worse, the container crashed and should be restarted, but the client stalled and the problem goes unnoticed
-- when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 0 (success). This triggers systemd's 
-  failure handling whereas in fact the container/service was properly shut down 
+- worse, the container crashes x and should be restarted, but the client stalled and the problem goes unnoticed
+- when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 0/success. This triggers systemd's
+  failure handling whereas in fact the container/service was properly shut down
 
 The **key thing that this wrapper does is** that it moves the container process from the cgroups setup by Docker to the service unit's cgroup **to make 
 systemd supervise the docker container process**. It's written in Golang and allows to leverage all the cgroup functionality of systemd and systemd-notify.
@@ -28,8 +29,7 @@ Both
 
 can be used and everything should stay in sync.
 
-Basically, the command is `systemd-docker run` instead of `docker run`.  Here's an unit file example to run a nginx container
-
+Basically, the command is `systemd-docker run` instead of `docker run`.  Here's an unit file example to run a nginx container:
 ```ini
 [Unit]
 Description=Nginx
@@ -51,7 +51,7 @@ WantedBy=multi-user.target
 Note: `Type=notify` and `NotifyAccess=all` are important
 
 ## Named Containers
-Container names are compulsory to make sure that the systemd services always relate to/act upon the same container(s). 
+Container names are compulsory to make sure that a systemd service always relate to/act upon the same container(s). 
 While it may seem as if that could be omitted as long as the `--rm` flag is passed to `docker run` or rather 
 `systemd-docker run`, that's misleading: the deletion process triggered by this flag is actually part of the Docker client 
 logic and if the client detaches for whatever reason from the running container, the information is lost (even if another 
@@ -88,7 +88,7 @@ If for whatever reason a pid file for the container PID is required, it's easy t
 
 `ExecStart=/opt/bin/systemd-docker --pid-file=/var/run/%n.pid --env run --rm --name %n nginx`
 
-#5 systemd-notify support
+## systemd-notify support
 
 By default `systemd-docker` will send READY=1 to the systemd notification socket.  You can instead delegate the READY=1 call to the container itself.  This is done by adding `--notify`.  For example
 
@@ -96,7 +96,7 @@ By default `systemd-docker` will send READY=1 to the systemd notification socket
 
 What this will do is set up a bind mount for the notification socket and then set the NOTIFY_SOCKET environment variable.  If you are going to use this feature of systemd, take some time to understand the quirks of it.  More info in this [mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, systemd-notify is not reliable because often the child dies before systemd has time to determine which cgroup it is a member of
 
-##Detaching the client
+## Detaching the client
 The `-d` argument to docker has no effect under `systemd-docker`. To cause the `systemd-docker` client to detach after the container is running, use `--logs=false --rm=false`. If either `--logs` or `--rm` is true, the `systemd-docker` client will stay alive until it is killed or the container exits.
 
 # Known issues
