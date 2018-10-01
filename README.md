@@ -1,23 +1,24 @@
 # Introduction
 This repository provides a wrapper that makes Docker containers truely compatible with `systemd`. One of `systemd`'s features is that it provides a process 
 watch and failure restart policy handling but if the systemd unit for a Docker container is configured to execute `docker run` (unit file configuration 
-`ExecStart=docker run ...`), `systemd` is actually going to supervise the Docker *client process instead of the container process*. This is how `docker run` 
-works and it can lead to bunch of odd situations:
+`ExecStart=docker run ...`), **`systemd`** is actually going to **supervise** the Docker **client process instead of the container process**. This is how 
+`docker run` works and it can lead to bunch of odd situations:
 - the client can detach or crash while the container is fine and should hence not be restarted
 - worse, the container crashed and should be restarted, but the client stalled and the problem goes unnoticed
 - when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 0 (success). This triggers systemd's 
   failure handling whereas in fact the container/service was properly shut down 
-The *key thing that this wrapper does is* move the container process from the cgroups setup by Docker to the service unit's cgroup *to make systemd supervise the
-docker container process*. It's written in Golang and allows to leverage all the cgroup functionality of systemd and systemd-notify.
+
+The **key thing that this wrapper does is** that it moves the container process from the cgroups setup by Docker to the service unit's cgroup **to make 
+systemd supervise the docker container process**. It's written in Golang and allows to leverage all the cgroup functionality of systemd and systemd-notify.
 
 # Repository history and credits
-- the code was written by [@ibuildthecloud](https://github.com/ibuildthecloud) and his co-contributors in this [repository](https://github.com/ibuildthecloud/systemd-docker)
-  The motivation is explained in this [Docker Issue #6791](https://github.com/docker/docker/issues/6791) and this [mailing list thread](https://groups.google.com/d/topic/coreos-dev/wf7G6rA7Bf4/discussion).
+- the code was written by [@ibuildthecloud](https://github.com/ibuildthecloud) and his co-contributors in this [repository](https://github.com/ibuildthecloud/systemd-docker). 
+The motivation is explained in this [Docker Issue #6791](https://github.com/docker/docker/issues/6791) and this [mailing list thread](https://groups.google.com/d/topic/coreos-dev/wf7G6rA7Bf4/discussion).
 - [@agend07](https://github.com/agend07) and co-contributors fixed outdated dependancies and clean-up a bit
 - I removed all outdated and broken elements and created a new compilation docker container which can be found [here]()
 
 # Installation
-You can download/compile through the normal `go get github.com/dontsetse/systemd-docker`. The executable can then be found in the Go binary directory, usually `/go/bin`. 
+Download/compile with `go get github.com/dontsetse/systemd-docker`. The executable can then be found in the Go binary directory, usually `/go/bin`. 
 It can also be build using a stand-alone docker image, see [here]()
 
 # Usage
@@ -59,7 +60,6 @@ It's even better to put `--name %n --rm` in the unit file's `ExecStart`; the con
 
 # Options
 ## Logging
--------
 By default the container's stdout/stderr will be piped to the journal.  If you do not want to use the journal, add `--logs=false` to the beginning of the command.  For example:
 
 `ExecStart=/opt/bin/systemd-docker --logs=false run --rm --name %n nginx`
@@ -81,9 +81,7 @@ The main magic of how this works is that the container processes are moved from 
 
 The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the others, like the freezer cgroup.
 
-# Pid File
---------
-
+## Pid File
 If for whatever reason you want to create a pid file for the container PID, you can.  Just add `--pid-file` as below
 
 `ExecStart=/opt/bin/systemd-docker --pid-file=/var/run/%n.pid --env run --rm --name %n nginx`
@@ -109,5 +107,4 @@ This will cause `systemd-docker` to fail unless run with`systemd-docker --cgroup
 See https://github.com/ibuildthecloud/systemd-docker/issues/15 for details.
 
 # License
-=======
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
