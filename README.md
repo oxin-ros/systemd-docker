@@ -1,8 +1,8 @@
 # Introduction
-This repository provides a wrapper that makes Docker containers truely compatible with `systemd`. One of `systemd`'s features is that it provides a process 
-monitoring and failure restart policy handling. If the systemd unit for a Docker container is configured to execute `docker run` (unit file configuration 
-`ExecStart=docker run ...`), **`systemd`** is actually going to **supervise** the Docker **client process instead of the container process**. This is how 
-`docker run` works and it can lead to bunch of odd situations:
+This repository provides a wrapper which improves the compatiblity of  Docker containers and `systemd`. One of `systemd`'s features is that it provides a 
+*process monitoring* and *failure restart policy handling*. If the systemd unit for a Docker container is configured to execute `docker run` (unit file 
+instruction `ExecStart=docker run ...`), **`systemd`** is actually going to **supervise** the Docker **client process instead of the container process**. 
+This is how `docker run` works and it can lead to bunch of odd situations:
 - the client can detach or crash while the container is fine and should hence not be restarted
 - worse, the container crashed and should be restarted, but the client stalled and the problem goes unnoticed
 - when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 0 (success). This triggers systemd's 
@@ -56,8 +56,9 @@ While it may seem as if that could be omitted as long as the `--rm` flag is pass
 `systemd-docker run`, that's misleading: the deletion process triggered by this flag is actually part of the Docker client 
 logic and if the client detaches for whatever reason from the running container, the information is lost (even if another 
 client is re-attached later) and the container will not be deleted. 
-`systemd-docker` looks for the named container on start.  If it exists and is stopped, it will be deleted.
-It's even better to put `--name %n --rm` in the unit file's `ExecStart`; the container name will match the name of the service unit.
+`systemd-docker` looks for the named container on start and if it exists and is stopped, it will be deleted.
+The placeholder %n is populated by systemd with the name of the service which allows the to write a `ExecStart` instruction 
+with the parameters `...--name %n --rm...`).
 
 # Options
 ## Logging
@@ -83,7 +84,7 @@ The main magic of how this works is that the container processes are moved from 
 The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the others, like the freezer cgroup.
 
 ## Pid File
-If for whatever reason you want to create a pid file for the container PID, you can.  Just add `--pid-file` as below
+If for whatever reason a pid file for the container PID is required, it's easy to create one. Just add `--pid-file` as below
 
 `ExecStart=/opt/bin/systemd-docker --pid-file=/var/run/%n.pid --env run --rm --name %n nginx`
 
