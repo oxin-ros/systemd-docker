@@ -4,10 +4,11 @@ This repository provides a wrapper that allows for a better integration of Docke
 Usually, a Docker container is launched with `docker run ...` where `docker` is the *Docker client* - a command 
 line utility connected to the *Docker engine running in another process*, which executes the *image builds, running 
 containers, etc. in yet other processes*. If a Docker container is started as a `systemd` service using 
-an instruction like `ExecStart=docker run ...`, *`systemd` is attached to the Docker client process instead of the 
-actual container process*, which can lead to a bunch of odd situations:
+an instruction like `ExecStart=docker run ...`, **`systemd` is attached to the Docker client process instead of the 
+actual container process**, which can lead to a bunch of odd situations:
 - the client can detach or crash while the container is fine, yet systemd would trigger failure handling 
-- worse, the container crashes and requires care, but the client stalled - systemd is blinded
+- worse, the container crashes and requires care, but the client stalled - systemd is blind and won't trigger 
+  anything
 - when a container is stopped with `docker stop ...`, attached client processes exit with an error code instead of 
   0/success. This triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
 
@@ -17,13 +18,13 @@ allows to *leverage all the cgroup functionality of `systemd` and `systemd-notif
 
 # Repository history and credits
 - the code was written by [@ibuildthecloud](https://github.com/ibuildthecloud) and his co-contributors in this [repository](https://github.com/ibuildthecloud/systemd-docker). 
-The motivation is explained in this [Docker Issue #6791](https://github.com/docker/docker/issues/6791) and this [mailing list thread](https://groups.google.com/d/topic/coreos-dev/wf7G6rA7Bf4/discussion).
-- [@agend07](https://github.com/agend07) and co-contributors fixed outdated dependancies and clean-up a bit
+The motivation is explained in this [Docker issue #6791](https://github.com/docker/docker/issues/6791) and this [mailing list thread](https://groups.google.com/d/topic/coreos-dev/wf7G6rA7Bf4/discussion).
+- [@agend07](https://github.com/agend07) and co-contributors fixed outdated dependancies and did a first clean-up
 - I removed all outdated and broken elements and created a new compilation docker container which can be found [here]()
 
 # Installation
 Supposing that a Go environment is available, the build instruction is `go get github.com/dontsetse/systemd-docker`. The 
-executable can then be found in the Go binary directory, f.ex. `/go/bin`. 
+executable can then be found in the Go binary directory, usually something like `$GO_ROOT/bin`. 
 
 It can also be build using a stand-alone docker image, see [here]()
 
@@ -55,30 +56,34 @@ WantedBy=multi-user.target
 ```
 Note: `Type=notify` and `NotifyAccess=all` are important
 
-## Container naming
+## Container names
 Container names are compulsory to make sure that a `systemd` service always relates to/acts upon the same container(s). 
-While it may seem as if that could be omitted as long as the `--rm` flag is passed to `docker run` or rather 
-`systemd-docker run`, that's misleading: the deletion process triggered by this flag is actually part of the Docker client 
-logic and if the client detaches for whatever reason from the running container, the information is lost (even if another 
-client is re-attached later) and the container will not be deleted. 
-`systemd-docker` looks for the named container on start and if it exists and is stopped, it will be deleted.
-The variable %n is populated by systemd with the name of the service which allows to write a `ExecStart` instruction 
-with the parameters `... --name %n --rm ...`.
+While it may seem as if that could be omitted as long as the `--rm` flag used, that's misleading: the deletion process 
+triggered by this flag is actually part of the Docker client logic and if the client detaches for whatever reason from 
+the running container, the information is lost (even if another client is re-attached later) and *the container will 
+**not** be deleted*.
+ 
+`systemd-docker` adds an additional check and looks for the named container on start and if it exists and is stopped, 
+it will be deleted.
+
+`systemd` populates a range of variables among which %n stands for the name of service (derived from it's filename). This 
+allows to write a self-configuring `ExecStart` instructions using the parameters 
+`ExecStart=systemd-docker ... run ... --name %n --rm ...`.
 
 # Options
 ## Logging
-By default the container's stdout/stderr will be piped to the journal. Add `--logs=false` before the `run` instruction, 
-as shown below:
+By default the container's stdout/stderr will be piped to the journal. Add `--logs=false` before the `run` instruction 
+to disable, as shown below:
 
 `ExecStart=systemd-docker --logs=false run ...`
 
 ## Environment Variables
 `systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject 
-variables into other instructions, the pattern ${varible_name} is used, for example:
+variables into other instructions, the pattern *${varible_name}* is used, for example:
 
-`ExecStart=systemd-docker run -e ABC=${ABC} -e XYZ=${XYZ}` 
+`ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...` 
 
-The systemd environment variables are automatically transfered to the docker container if the `--env` flag is provided.  
+The systemd environment variables are automatically passed through to the docker container if the `--env` flag is provided.  
 This will essentially read all the current environment variables and add the appropriate `-e ...` flags to the docker run 
 command.  For example:
 
