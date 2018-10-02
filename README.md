@@ -1,16 +1,17 @@
 # Introduction
-This repository provides a wrapper which solves problems that arise when Docker containers are meant to be run as `systemd` services. 
-Normally a Docker container is launched with `docker run ...` and the resulting process (the one to which the caller is attached
-to) is a Docker client process, in turn connected to the Docker container process(es). In the context of systemd, the equivalent instruction 
-`ExecStart=docker run ...` hence implies that systemd is attached to the Docker **client process instead of the container process**. 
-That leads to a bunch of odd situations:
+This repository provides a wrapper which solves problems that arise when Docker containers shall be run as `systemd` services. 
+The normal Docker container launch instruction is simply `docker run ...` and the resulting process (the one to which the caller 
+is attached to) is a **Docker client process**. In the context of systemd, the equivalent instruction service launch instruction 
+`ExecStart=docker run ...` would hence imply that systemd is attached to the Docker **client process instead of the container 
+process**. That leads to a bunch of odd situations:
 - the client can detach or crash while the container is fine and should hence not be restarted
-- worse, the container crashes x and should be restarted, but the client stalled and the problem goes unnoticed
-- when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 0/success. This triggers systemd's
-  failure handling whereas in fact the container/service was properly shut down
+- worse, the container crashes and should be restarted, but the client stalled and the problem goes unnoticed
+- when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 0/success. This 
+  triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
 
-The **key thing that this wrapper does is** that it moves the container process from the cgroups setup by Docker to the service unit's cgroup **to make 
-systemd supervise the docker container process**. It's written in Golang and allows to leverage all the cgroup functionality of systemd and systemd-notify.
+The **key thing that this wrapper does is** that it moves the container process from the *cgroups* setup by Docker to the service 
+unit's cgroup **to make systemd supervise the docker container process**. It's written in Golang and allows to *leverage all the 
+cgroup functionality of `systemd` and `systemd-notify`*.
 
 # Repository history and credits
 - the code was written by [@ibuildthecloud](https://github.com/ibuildthecloud) and his co-contributors in this [repository](https://github.com/ibuildthecloud/systemd-docker). 
@@ -19,7 +20,9 @@ The motivation is explained in this [Docker Issue #6791](https://github.com/dock
 - I removed all outdated and broken elements and created a new compilation docker container which can be found [here]()
 
 # Installation
-Download/compile with `go get github.com/dontsetse/systemd-docker`. The executable can then be found in the Go binary directory, usually `/go/bin`. 
+Supposing that a Go environment is readily available, the build instruction is `go get github.com/dontsetse/systemd-docker`. The 
+executable can then be found in the Go binary directory, usually `/go/bin`. 
+
 It can also be build using a stand-alone docker image, see [here]()
 
 # Usage
@@ -50,7 +53,7 @@ WantedBy=multi-user.target
 ```
 Note: `Type=notify` and `NotifyAccess=all` are important
 
-## Named Containers
+## Container naming
 Container names are compulsory to make sure that a systemd service always relate to/act upon the same container(s). 
 While it may seem as if that could be omitted as long as the `--rm` flag is passed to `docker run` or rather 
 `systemd-docker run`, that's misleading: the deletion process triggered by this flag is actually part of the Docker client 
