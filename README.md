@@ -1,15 +1,14 @@
 # Introduction
 This repository provides a wrapper that allows for a better integration of Docker containers as `systemd` services. 
 
-Usually, a Docker container is launched with `docker run ...`. It's important to note that `docker` stands for the 
-*Docker client* - a command line utility connected to the *Docker engine running in another process*, which executes 
-the image builds, *running containers, etc. in yet other processes*. This **"process confusion"** leads to problems 
-if containers are meant to be run as `systemd` services - the equivalent instruction for service launch 
-`ExecStart=docker run ...` would imply that `systemd` monitors the client instead of the actual container. That leads 
-to a bunch of odd situations:
+Usually, a Docker container is launched with `docker run ...` where `docker` is the *Docker client* - a command 
+line utility connected to the *Docker engine running in another process*, which executes the *image builds, running 
+containers, etc. in yet other processes*. If a Docker container is started as a `systemd` service using 
+an instruction like `ExecStart=docker run ...`, *`systemd` is attached to the Docker client process instead of the 
+actual container process*, which can lead to a bunch of odd situations:
 - the client can detach or crash while the container is fine, yet systemd would trigger failure handling 
-- worse, the container crashes and should be restarted, but the client stalled and the problem goes unnoticed
-- when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 
+- worse, the container crashes and requires care, but the client stalled - systemd is blinded
+- when a container is stopped with `docker stop ...`, attached client processes exit with an error code instead of 
   0/success. This triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
 
 The **key thing that this wrapper does is** that it moves the container process from the *cgroups* set up by Docker 
