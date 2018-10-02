@@ -1,19 +1,19 @@
 # Introduction
-This repository provides a wrapper that allows for a better integration of Docker containers as `systemd` services. 
+This repository provides a wrapper which improves the integration of Docker containers run as `systemd` services. 
 
 Usually, a Docker container is launched with `docker run ...` where `docker` is the *Docker client* - a command 
 line utility connected to the *Docker engine running in another process*, which executes the *image builds, running 
 containers, etc. in yet other processes*. If a Docker container is started as a `systemd` service using 
 an instruction like `ExecStart=docker run ...`, **`systemd` is attached to the Docker client process instead of the 
 actual container process, which can lead to a bunch of odd situations**:
-- the client can detach or crash while the container is fine, yet `systemd` would trigger failure handling 
+- the client can detach or crash while the container is doing fine, yet `systemd` would trigger failure handling 
 - worse, the container crashes and requires care, but the client stalled - `systemd` is blind and won't trigger 
   anything
 - when a container is stopped with `docker stop ...`, attached client processes exit with an error code instead of 
   0/success. This triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
 
 The **key thing that this wrapper does is** that it moves the container process from the *cgroups set up by Docker* 
-to the *service unit's cgroup* **to give `systemd` the mean to supervise the actual Docker container process**. 
+to the *service unit's cgroup* **to give `systemd` the supervision of the actual Docker container process**. 
 It's written in Golang and allows to *leverage all the cgroup functionality of `systemd` and `systemd-notify`*.
 
 # Repository history and credits
@@ -40,9 +40,9 @@ In the `systemd` unit files, the instruction to launch the Docker container take
 `ExecStart=systemd-docker [<sysd-dkr_opts>] run [<dkr-run_opts>] <img_name> [<cnt_params>]`
 
 where
-- `<sysd-dkr_opts>` are the system-docker flages are explained below in the section Options
-- `<dkr-run_opts>` are the usual flags defined by `docker run` - a few restriction apply, see section 
-  Docker restrictions
+- `<sysd-dkr_opts>` are the systemd-docker flags explained in the [systemd-docker Options](#systemd-docker-options)
+- `<dkr-run_opts>` are the usual flags defined by `docker run` - a few restrictions apply, see section 
+  [Docker restrictions](#docker-restrictions)
 - `<img_name>` is the name of the Docker image to run
 - `<cnt_params>` are the parameters provided to the container when it's started  
 
@@ -91,16 +91,15 @@ See the Environment variables section in the systemd-docker options
 
 # Systemd-docker options
 ## Logging
-By default the container's stdout/stderr will be piped to the journal. Add `--logs=false` before the `run` instruction 
-to disable, as shown below:
+By default the container's stdout/stderr is written to the system journal. This may be disables with `--logs=false`.
 
-`ExecStart=systemd-docker --logs=false run ...`
+Example: `ExecStart=systemd-docker ... --logs=false ... run ...`
 
 ## Environment Variables
 `systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject 
-variables into other instructions, the pattern *${varible_name}* is used, for example:
+variables into other instructions, the pattern is *${variable_name}*
 
-`ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...` 
+Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...` 
 
 The systemd environment variables are automatically passed through to the docker container if the `--env` flag is provided.  
 This will essentially read all the current environment variables and add the appropriate `-e ...` flags to the docker run 
@@ -113,11 +112,11 @@ ExecStart=systemd-docker --env run ...
 The contents of `/etc/environment` will be added to the docker run command.
 
 ## Cgroups
-The main magic of how this works is that the container processes are moved from the Docker cgroups to the system unit cgroups.  
-By default all application cgroups will be moved. This means by default you can't use `--cpuset` or `-m` in Docker.  If you 
-don't want to use the systemd cgroups, but instead use the Docker cgroups, you can control which cgroups are transfered using 
-the `--cgroups` option.  **Minimally you must set `name=systemd`; otherwise, systemd will lose track of the container**.  For 
-example
+By default all application cgroups are moved to systemd. This implies that the `docker run` flags  `--cpuset` and/or `-m` 
+are incompatible. It's also possible to control which cgroups are transfered using individual  `--cgroups` flags for 
+each cgroup to transfer. **`-cgroups name=systemd` is the strict minimum, if it's not specified, `systemd` will lose track 
+of the container**. 
+This implies that the `docker run` flags  `--cpuset` and/or `-m` are incompatible.
 
 `ExecStart=/opt/bin/systemd-docker --cgroups name=systemd --cgroups=cpu run --rm --name %n nginx`
 
@@ -159,7 +158,9 @@ alive until the `systemd` service is stopped or the container exits.
 ## Inconsistent cgroup
 CentOS 7 is inconsistent in the way it handles some cgroups. It has `3:cpuacct,cpu:/user.slice` in `/proc/[pid]/cgroups` but the corresponding path 
 `/sys/fs/cgroup/cpu,cpuacct/` doesn't exist. This causes `systemd-docker` to fail when it tries to move the PIDs there. To solve this the systemd
-cgroup must be explicitely mentioned: `systemd-docker ... --cgroups name=systemd ... run ...`
+cgroup must be explicitely mentioned: 
+
+`systemd-docker ... --cgroups name=systemd ... run ...`
 
 See https://github.com/ibuildthecloud/systemd-docker/issues/15 for details.
 
