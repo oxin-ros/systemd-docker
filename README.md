@@ -12,9 +12,9 @@ actual container process, which can lead to a bunch of odd situations**:
 - when a container is stopped with `docker stop ...`, attached client processes exit with an error code instead of 
   0/success. This triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
 
-The **key thing that this wrapper does is** that it moves the container process from the *cgroups* set up by Docker 
-to the service unit's cgroup **to make systemd supervise the Docker container process**. It's written in Golang and 
-allows to *leverage all the cgroup functionality of `systemd` and `systemd-notify`*.
+The **key thing that this wrapper does is** that it moves the container process from the *cgroups set up by Docker* 
+to the *service unit's cgroup* **to give `systemd` the mean to supervise the actual Docker container process**. 
+It's written in Golang and allows to *leverage all the cgroup functionality of `systemd` and `systemd-notify`*.
 
 # Repository history and credits
 - the code was written by [@ibuildthecloud](https://github.com/ibuildthecloud) and his co-contributors in this [repository](https://github.com/ibuildthecloud/systemd-docker). 
@@ -28,16 +28,16 @@ executable can then be found in the Go binary directory, usually something like 
 
 It can also be build using a stand-alone docker image, see [here]()
 
-# Usage
+# Use
 Both
 - `systemctl` to manage `systemd` services, and
 - the `docker` CLI
 
 can be used and everything should stay in sync.
 
-Basically, the command is `systemd-docker run` instead of `docker run`. A bit more formal definition is
+In the `systemd` unit files, the instruction to launch the Docker container takes the form 
 
-`systemd-docker [<systemd-docker_options>] run [<docker-run_options>] <image_name> [<container_parameters>]`
+`ExecStart=systemd-docker [<systemd-docker_options>] run [<docker-run_options>] <image_name> [<container_parameters>]`
 
 where
 - `<systemd-docker_options>` are explained below in the section Options
@@ -46,7 +46,10 @@ where
 - `<image_name>` is the name of the Docker image to run
 - `<container_parameters>` are the parameters provided to the container when it's started  
 
-Here's an unit file example to run a nginx container:
+Note: like any executable, `systemd-docker` should be in folder that is part of `$PATH` to be able to use it globally, 
+      otherwise use a absolute path in the instruction like f.ex. `ExecStart=/opt/bin/systemd-docker ...` 
+
+Here's an unit file example to run a Nginx container:
 ```ini
 [Unit]
 Description=Nginx
@@ -77,11 +80,16 @@ the running container, the information is lost (even if another client is re-att
 `systemd-docker` adds an additional check and looks for the named container on start and if it exists and is stopped, 
 it will be deleted.
 
+# Systemd 
+## Automatic container naming
 `systemd` populates a range of variables among which %n stands for the name of service (derived from it's filename). This 
 allows to write a self-configuring `ExecStart` instructions using the parameters 
 `ExecStart=systemd-docker ... run ... --name %n --rm ...`.
 
-# Options
+## Use of `systemd` environment variables
+See the Environment variables section in the systemd-docker options
+
+# Systemd-docker options
 ## Logging
 By default the container's stdout/stderr will be piped to the journal. Add `--logs=false` before the `run` instruction 
 to disable, as shown below:
@@ -116,20 +124,30 @@ example
 The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the others, like the freezer cgroup.
 
 ## Pid File
-If for whatever reason a pid file for the container PID is required, it's easy to create one. Just add `--pid-file` as below
+To create a PID file for the container, just add `--pid-file=<path/to/pid_file>` as shown below
 
-`ExecStart=/opt/bin/systemd-docker --pid-file=/var/run/%n.pid --env run --rm --name %n nginx`
+`ExecStart=systemd-docker --pid-file=/var/run/%n.pid run ...`
 
 ## systemd-notify support
 
-By default `systemd-docker` will send READY=1 to the systemd notification socket.  You can instead delegate the READY=1 call to the container itself.  This is done by adding `--notify`.  For example
+By default `systemd-docker` will send READY=1 to the `systemd` notification socket.  With the `systemd-docker` `--notify` flag the READY=1 call is 
+delegated to the container itself:
 
-`ExecStart=/opt/bin/systemd-docker --notify run --rm --name %n nginx`
+`ExecStart=systemd-docker --notify run ...`
 
-What this will do is set up a bind mount for the notification socket and then set the NOTIFY_SOCKET environment variable.  If you are going to use this feature of systemd, take some time to understand the quirks of it.  More info in this [mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, systemd-notify is not reliable because often the child dies before systemd has time to determine which cgroup it is a member of
+If this flag is provided to `systemd-docker` it bind mounts the `systemd` notification socket into the container and sets the NOTIFY_SOCKET 
+environment variable. Please be aware that `systemd-notify` comes with its own quirks - more info can be found in this 
+[mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, `systemd-notify` is not reliable because often 
+the child dies before `systemd` has time to determine which cgroup it is a member of.
 
-## Detaching the client
-The `-d` argument to docker has no effect under `systemd-docker`. To cause the `systemd-docker` client to detach after the container is running, use `--logs=false --rm=false`. If either `--logs` or `--rm` is true, the `systemd-docker` client will stay alive until it is killed or the container exits.
+# Docker restrictions
+## `--cpuset` or `-m`
+These flags can't be used because they are incompatible with the cgroup migration systemd-docker requires. 
+
+## `-d` flag / detaching the client
+The `-d` argument to docker has no effect under `systemd-docker`. To cause the `systemd-docker` client to detach after the container is running, use 
+`--logs=false --rm=false`. If either `--logs` or `--rm` is true, the Docker client instance used by `systemd-docker` is kept alive until the service 
+is stopped or the container exits.
 
 # Known issues
 ## Inconsistent cgroup
