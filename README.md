@@ -4,16 +4,17 @@ This repository provides a wrapper which improves the integration of Docker cont
 Usually, a Docker container is launched with `docker run ...` where `docker` is the *Docker client* - a command 
 line utility connected to the *Docker engine running in another process*, which executes the *image builds, running 
 containers, etc. in yet other processes*. If a Docker container is started as a `systemd` service using 
-an instruction like `ExecStart=docker run ...`, **`systemd` is attached to the Docker client process instead of the 
+an instruction like `ExecStart=docker run ...`, **`systemd` interacts with the Docker client process instead of the 
 actual container process, which can lead to a bunch of odd situations**:
 - the client can detach or crash while the container is doing fine, yet `systemd` would trigger failure handling 
-- worse, the container crashes and requires care, but the client stalled - `systemd` is blind and won't trigger 
+- worse, the container crashes and should be taken care of, but the client stalled - `systemd` is blind and won't do  
   anything
 - when a container is stopped with `docker stop ...`, attached client processes exit with an error code instead of 
-  0/success. This triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
+  0/success. Unless specially configued, this also triggers `systemd`'s failure handling in an inappropriate 
+  situation
 
 The **key thing that this wrapper does is** that it moves the container process from the *cgroups set up by Docker* 
-to the *service unit's cgroup* **to give `systemd` the supervision of the actual Docker container process**. 
+to the *service unit's cgroup* **to give `systemd` the supervision of the actual Docker container process**.  
 It's written in Golang and allows to *leverage all the cgroup functionality of `systemd` and `systemd-notify`*.
 
 # Repository history and credits
@@ -24,7 +25,8 @@ The motivation is explained in this [Docker issue #6791](https://github.com/dock
 
 # Installation
 Supposing that a Go environment is available, the build instruction is `go get github.com/dontsetse/systemd-docker`. The 
-executable can then be found in the Go binary directory, usually something like `$GO_ROOT/bin`. 
+executable can then be found in the Go binary directory, usually something like `$GO_ROOT/bin` and it's called 
+`systemd-docker`.
 
 It can also be build using a stand-alone docker image, see [here]()
 
@@ -68,6 +70,10 @@ TimeoutStopSec=15
 [Install]
 WantedBy=multi-user.target
 ```
+The use of `%n` is a `systemd` feature explained in the [automtic container naming section](#automatic-container-naming)
+Supposing that the example given above is stored under the likely path `/etc/systemd/system/nginx.service`, the 
+container is named nginx. 
+ 
 Note: `Type=notify` and `NotifyAccess=all` are important
 
 ## Container names
@@ -77,17 +83,25 @@ triggered by this flag is actually part of the Docker client logic and if the cl
 the running container, the information is lost (even if another client is re-attached later) and *the container will 
 **not** be deleted*.
  
-`systemd-docker` adds an additional check and looks for the named container on start and if it exists and is stopped, 
-it will be deleted.
+`systemd-docker` adds an additional check and looks for the named container when `run` is called - if one exists and 
+is stopped, it will be deleted.
 
-# Systemd 
+# Systemd integration details
 ## Automatic container naming
-`systemd` populates a range of variables among which %n stands for the name of service (derived from it's filename). This 
-allows to write a self-configuring `ExecStart` instructions using the parameters 
-`ExecStart=systemd-docker ... run ... --name %n --rm ...`.
+`systemd` populates a range of variables among which `%n` stands for the name of service, derived from it's filename. 
+This  allows to write a self-configuring `ExecStart` instructions using the parameters
+ 
+`ExecStart=systemd-docker ... run ... --name %n --rm ...`
 
 ## Use of `systemd` environment variables
-See the Environment variables section in the systemd-docker options
+`systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject
+variables into other instructions, the pattern is *${variable_name}*. With the flag -e they can be passed to the 
+container (and not to `systemd-docker`)
+
+Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
+
+`systemd-docker` has an option to pass on all defined environment variables using the `--env` flag, see the 
+[environment variables section](#environment-variables) in the `systemd-docker` options
 
 # Systemd-docker options
 ## Logging
