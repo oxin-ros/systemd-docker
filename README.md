@@ -1,17 +1,20 @@
 # Introduction
-This repository provides a wrapper which solves problems that arise when Docker containers shall be run as `systemd` services. 
-The normal Docker container launch instruction is simply `docker run ...` and the resulting process (the one to which the caller 
-is attached to) is a **Docker client process**. In the context of systemd, the equivalent instruction service launch instruction 
-`ExecStart=docker run ...` would hence imply that systemd is attached to the Docker **client process instead of the container 
-process**. That leads to a bunch of odd situations:
-- the client can detach or crash while the container is fine and should hence not be restarted
-- worse, the container crashes and should be restarted, but the client stalled and the problem goes unnoticed
-- when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 0/success. This 
-  triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
+This repository provides a wrapper that allows for a better integration of Docker containers as `systemd` services. 
 
-The **key thing that this wrapper does is** that it moves the container process from the *cgroups* setup by Docker to the service 
-unit's cgroup **to make systemd supervise the docker container process**. It's written in Golang and allows to *leverage all the 
-cgroup functionality of `systemd` and `systemd-notify`*.
+Usually, a Docker container is launched with `docker run ...`. It's important to note that `docker` stands for the 
+*Docker client* - a command line utility connected to the *Docker engine running in another process*, which executes 
+the image builds, *running containers, etc. in yet other processes*. This **"process confusion"** leads to problems 
+if containers are meant to be run as `systemd` services - the equivalent instruction for service launch 
+`ExecStart=docker run ...` would imply that `systemd` monitors the client instead of the actual container. That leads 
+to a bunch of odd situations:
+- the client can detach or crash while the container is fine, yet systemd would trigger failure handling 
+- worse, the container crashes and should be restarted, but the client stalled and the problem goes unnoticed
+- when a container is stopped using `docker stop`, attached client processes exit with an error code instead of 
+  0/success. This triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
+
+The **key thing that this wrapper does is** that it moves the container process from the *cgroups* set up by Docker 
+to the service unit's cgroup **to make systemd supervise the Docker container process**. It's written in Golang and 
+allows to *leverage all the cgroup functionality of `systemd` and `systemd-notify`*.
 
 # Repository history and credits
 - the code was written by [@ibuildthecloud](https://github.com/ibuildthecloud) and his co-contributors in this [repository](https://github.com/ibuildthecloud/systemd-docker). 
@@ -20,8 +23,8 @@ The motivation is explained in this [Docker Issue #6791](https://github.com/dock
 - I removed all outdated and broken elements and created a new compilation docker container which can be found [here]()
 
 # Installation
-Supposing that a Go environment is readily available, the build instruction is `go get github.com/dontsetse/systemd-docker`. The 
-executable can then be found in the Go binary directory, usually `/go/bin`. 
+Supposing that a Go environment is available, the build instruction is `go get github.com/dontsetse/systemd-docker`. The 
+executable can then be found in the Go binary directory, f.ex. `/go/bin`. 
 
 It can also be build using a stand-alone docker image, see [here]()
 
@@ -54,33 +57,44 @@ WantedBy=multi-user.target
 Note: `Type=notify` and `NotifyAccess=all` are important
 
 ## Container naming
-Container names are compulsory to make sure that a systemd service always relate to/act upon the same container(s). 
+Container names are compulsory to make sure that a `systemd` service always relates to/acts upon the same container(s). 
 While it may seem as if that could be omitted as long as the `--rm` flag is passed to `docker run` or rather 
 `systemd-docker run`, that's misleading: the deletion process triggered by this flag is actually part of the Docker client 
 logic and if the client detaches for whatever reason from the running container, the information is lost (even if another 
 client is re-attached later) and the container will not be deleted. 
 `systemd-docker` looks for the named container on start and if it exists and is stopped, it will be deleted.
-The placeholder %n is populated by systemd with the name of the service which allows the to write a `ExecStart` instruction 
-with the parameters `...--name %n --rm...`).
+The variable %n is populated by systemd with the name of the service which allows to write a `ExecStart` instruction 
+with the parameters `... --name %n --rm ...`.
 
 # Options
 ## Logging
-By default the container's stdout/stderr will be piped to the journal.  If you do not want to use the journal, add `--logs=false` to the beginning of the command.  For example:
+By default the container's stdout/stderr will be piped to the journal. Add `--logs=false` before the `run` instruction, 
+as shown below:
 
-`ExecStart=/opt/bin/systemd-docker --logs=false run --rm --name %n nginx`
+`ExecStart=systemd-docker --logs=false run ...`
 
 ## Environment Variables
-Using `Environment=` and `EnvironmentFile=`, systemd can set up environment variables for you, but then unfortunately you have to do `run -e ABC=${ABC} -e XYZ=${XYZ}` in your unit file.  You can have the systemd environment variables automatically transfered to your docker container by adding `--env`.  This will essentially read all the current environment variables and add the appropriate `-e ...` flags to your docker run command.  For example:
+`systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject 
+variables into other instructions, the pattern ${varible_name} is used, for example:
+
+`ExecStart=systemd-docker run -e ABC=${ABC} -e XYZ=${XYZ}` 
+
+The systemd environment variables are automatically transfered to the docker container if the `--env` flag is provided.  
+This will essentially read all the current environment variables and add the appropriate `-e ...` flags to the docker run 
+command.  For example:
 
 ```
 EnvironmentFile=/etc/environment
-ExecStart=/opt/bin/systemd-docker --env run --rm --name %n nginx
+ExecStart=systemd-docker --env run ...
 ```
-
-The contents of `/etc/environment` will be added to your docker run command
+The contents of `/etc/environment` will be added to the docker run command.
 
 ## Cgroups
-The main magic of how this works is that the container processes are moved from the Docker cgroups to the system unit cgroups.  By default all application cgroups will be moved.  This means by default you can't use `--cpuset` or `-m` in Docker.  If you don't want to use the systemd cgroups, but instead use the Docker cgroups, you can control which cgroups are transfered using the `--cgroups` option.  **Minimally you must set `name=systemd`; otherwise, systemd will lose track of the container**.  For example
+The main magic of how this works is that the container processes are moved from the Docker cgroups to the system unit cgroups.  
+By default all application cgroups will be moved. This means by default you can't use `--cpuset` or `-m` in Docker.  If you 
+don't want to use the systemd cgroups, but instead use the Docker cgroups, you can control which cgroups are transfered using 
+the `--cgroups` option.  **Minimally you must set `name=systemd`; otherwise, systemd will lose track of the container**.  For 
+example
 
 `ExecStart=/opt/bin/systemd-docker --cgroups name=systemd --cgroups=cpu run --rm --name %n nginx`
 
