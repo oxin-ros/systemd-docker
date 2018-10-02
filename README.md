@@ -5,9 +5,9 @@ Usually, a Docker container is launched with `docker run ...` where `docker` is 
 line utility connected to the *Docker engine running in another process*, which executes the *image builds, running 
 containers, etc. in yet other processes*. If a Docker container is started as a `systemd` service using 
 an instruction like `ExecStart=docker run ...`, **`systemd` is attached to the Docker client process instead of the 
-actual container process**, which can lead to a bunch of odd situations:
-- the client can detach or crash while the container is fine, yet systemd would trigger failure handling 
-- worse, the container crashes and requires care, but the client stalled - systemd is blind and won't trigger 
+actual container process, which can lead to a bunch of odd situations**:
+- the client can detach or crash while the container is fine, yet `systemd` would trigger failure handling 
+- worse, the container crashes and requires care, but the client stalled - `systemd` is blind and won't trigger 
   anything
 - when a container is stopped with `docker stop ...`, attached client processes exit with an error code instead of 
   0/success. This triggers `systemd`'s failure handling whereas in fact the container/service was properly shut down
@@ -30,12 +30,23 @@ It can also be build using a stand-alone docker image, see [here]()
 
 # Usage
 Both
-- `systemctl` to manage systemd services, and
+- `systemctl` to manage `systemd` services, and
 - the `docker` CLI
 
 can be used and everything should stay in sync.
 
-Basically, the command is `systemd-docker run` instead of `docker run`.  Here's an unit file example to run a nginx container:
+Basically, the command is `systemd-docker run` instead of `docker run`. A bit more formal definition is
+
+`systemd-docker [<systemd-docker_options>] run [<docker-run_options>] <image_name> [<container_parameters>]`
+
+where
+- `<systemd-docker_options>` are explained below in the section Options
+- `<docker-run_options>` are the usual flags defined by `docker run` - a few restriction apply, see section 
+  Docker restrictions
+- `<image_name>` is the name of the Docker image to run
+- `<container_parameters>` are the parameters provided to the container when it's started  
+
+Here's an unit file example to run a nginx container:
 ```ini
 [Unit]
 Description=Nginx
@@ -43,7 +54,7 @@ After=docker.service
 Requires=docker.service
 
 [Service]
-ExecStart=/opt/bin/systemd-docker run --rm --name %n nginx
+ExecStart=systemd-docker run --rm --name %n nginx
 Restart=always
 RestartSec=10s
 Type=notify
