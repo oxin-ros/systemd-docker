@@ -37,14 +37,14 @@ can be used and everything should stay in sync.
 
 In the `systemd` unit files, the instruction to launch the Docker container takes the form 
 
-`ExecStart=systemd-docker [<systemd-docker_options>] run [<docker-run_options>] <image_name> [<container_parameters>]`
+`ExecStart=systemd-docker [<sysd-dkr_opts>] run [<dkr-run_opts>] <img_name> [<cnt_params>]`
 
 where
-- `<systemd-docker_options>` are explained below in the section Options
-- `<docker-run_options>` are the usual flags defined by `docker run` - a few restriction apply, see section 
+- `<sysd-dkr_opts>` are the system-docker flages are explained below in the section Options
+- `<dkr-run_opts>` are the usual flags defined by `docker run` - a few restriction apply, see section 
   Docker restrictions
-- `<image_name>` is the name of the Docker image to run
-- `<container_parameters>` are the parameters provided to the container when it's started  
+- `<img_name>` is the name of the Docker image to run
+- `<cnt_params>` are the parameters provided to the container when it's started  
 
 Note: like any executable, `systemd-docker` should be in folder that is part of `$PATH` to be able to use it globally, 
       otherwise use a absolute path in the instruction like f.ex. `ExecStart=/opt/bin/systemd-docker ...` 
@@ -123,36 +123,38 @@ example
 
 The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the others, like the freezer cgroup.
 
-## Pid File
+## PID File
 To create a PID file for the container, just add `--pid-file=<path/to/pid_file>` as shown below
 
-`ExecStart=systemd-docker --pid-file=/var/run/%n.pid run ...`
+`ExecStart=systemd-docker --pid-file=/var/run/%n.pid ... run ...`
 
 ## systemd-notify support
 
 By default `systemd-docker` will send READY=1 to the `systemd` notification socket.  With the `systemd-docker` `--notify` flag the READY=1 call is 
-delegated to the container itself:
+delegated to the container itself. To achieve this, `systemd-docker` bind mounts the `systemd` notification socket into the container and sets the 
+NOTIFY_SOCKET environment variable. 
 
-`ExecStart=systemd-docker --notify run ...`
-
-If this flag is provided to `systemd-docker` it bind mounts the `systemd` notification socket into the container and sets the NOTIFY_SOCKET 
-environment variable. Please be aware that `systemd-notify` comes with its own quirks - more info can be found in this 
+Please be aware that `systemd-notify` comes with its own quirks - more info can be found in this 
 [mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, `systemd-notify` is not reliable because often 
 the child dies before `systemd` has time to determine which cgroup it is a member of.
 
+## Container removal behavior
+
+To disable `systemd-docker`'s "stopped container removal" procedure, the flag `... --rm=false ...` can be used.
+
 # Docker restrictions
 ## `--cpuset` or `-m`
-These flags can't be used because they are incompatible with the cgroup migration systemd-docker requires. 
+These flags can't be used because they are *incompatible with the cgroup migration* inherent to `systemd-docker`. 
 
 ## `-d` flag / detaching the client
-The `-d` argument to docker has no effect under `systemd-docker`. To cause the `systemd-docker` client to detach after the container is running, use 
-`--logs=false --rm=false`. If either `--logs` or `--rm` is true, the Docker client instance used by `systemd-docker` is kept alive until the service 
-is stopped or the container exits.
+The `-d` argument to docker has no effect under `systemd-docker`. To cause the Docker client to detach after the container is running, use the 
+`systemd-docker` options `--logs=false --rm=false`. If either `--logs` or `--rm` is true, the Docker client instance used by `systemd-docker` is kept 
+alive until the systemd service is stopped or the container exits.
 
 # Known issues
 ## Inconsistent cgroup
-CentOS 7 is inconsistent in the way it handles some cgroups. 
-It has `3:cpuacct,cpu:/user.slice` in `/proc/[pid]/cgroups` which is inconsistent with the cgroup path `/sys/fs/cgroup/cpu,cpuacct/` that systemd-docker is trying to move pids to.
+CentOS 7 is *inconsistent* in the way it handles some cgroups. It has `3:cpuacct,cpu:/user.slice` in `/proc/[pid]/cgroups` which is inconsistent with
+the cgroup path `/sys/fs/cgroup/cpu,cpuacct/` that `systemd-docker` tries to move PIDs to.
 
 This will cause `systemd-docker` to fail unless run with`systemd-docker --cgroups name=systemd run`
 
