@@ -124,15 +124,17 @@ example
 The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the others, like the freezer cgroup.
 
 ## PID File
-To create a PID file for the container, just add `--pid-file=<path/to/pid_file>` as shown below
+To create a PID file for the container, just add `--pid-file=<path/to/pid_file>`.
 
-`ExecStart=systemd-docker --pid-file=/var/run/%n.pid ... run ...`
+Example: `ExecStart=systemd-docker ... --pid-file=/var/run/%n.pid ... run ...`
 
 ## systemd-notify support
 
 By default `systemd-docker` will send READY=1 to the `systemd` notification socket.  With the `systemd-docker` `--notify` flag the READY=1 call is 
 delegated to the container itself. To achieve this, `systemd-docker` bind mounts the `systemd` notification socket into the container and sets the 
 NOTIFY_SOCKET environment variable. 
+
+Example: `ExecStart=systemd-docker ... --notify ... run ...`
 
 Please be aware that `systemd-notify` comes with its own quirks - more info can be found in this 
 [mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, `systemd-notify` is not reliable because often 
@@ -142,21 +144,22 @@ the child dies before `systemd` has time to determine which cgroup it is a membe
 
 To disable `systemd-docker`'s "stopped container removal" procedure, the flag `... --rm=false ...` can be used.
 
-# Docker restrictions
-## `--cpuset` or `-m`
-These flags can't be used because they are *incompatible with the cgroup migration* inherent to `systemd-docker`. 
+Example: `ExecStart=systemd-docker ... --rm=false ... run ...`
 
-## `-d` flag / detaching the client
-The `-d` argument to docker has no effect under `systemd-docker`. To cause the Docker client to detach after the container is running, use the 
-`systemd-docker` options `--logs=false --rm=false`. If either `--logs` or `--rm` is true, the Docker client instance used by `systemd-docker` is kept 
-alive until the systemd service is stopped or the container exits.
+# Docker restrictions
+## --cpuset and/or -m
+These flags can't be used because they are incompatible with the cgroup migration(s) inherent to `systemd-docker`. 
+
+## -d (detaching the Docker client)
+The `-d` flag provided to `docker run` has no effect under `systemd-docker`. To cause the Docker client to detach after the container is running, use 
+the `systemd-docker` options `--logs=false --rm=false`. If either `--logs` or `--rm` is true, the Docker client instance used by `systemd-docker` is kept 
+alive until the `systemd` service is stopped or the container exits.
 
 # Known issues
 ## Inconsistent cgroup
-CentOS 7 is *inconsistent* in the way it handles some cgroups. It has `3:cpuacct,cpu:/user.slice` in `/proc/[pid]/cgroups` which is inconsistent with
-the cgroup path `/sys/fs/cgroup/cpu,cpuacct/` that `systemd-docker` tries to move PIDs to.
-
-This will cause `systemd-docker` to fail unless run with`systemd-docker --cgroups name=systemd run`
+CentOS 7 is inconsistent in the way it handles some cgroups. It has `3:cpuacct,cpu:/user.slice` in `/proc/[pid]/cgroups` but the corresponding path 
+`/sys/fs/cgroup/cpu,cpuacct/` doesn't exist. This causes `systemd-docker` to fail when it tries to move the PIDs there. To solve this the systemd
+cgroup must be explicitely mentioned: `systemd-docker ... --cgroups name=systemd ... run ...`
 
 See https://github.com/ibuildthecloud/systemd-docker/issues/15 for details.
 
