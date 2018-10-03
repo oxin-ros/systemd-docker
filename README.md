@@ -22,7 +22,7 @@ The motivation is explained in this [Docker issue #6791](https://github.com/dock
 
 # Installation
 Supposing that a Go environment is available, the build instruction is `go get github.com/dontsetse/systemd-docker`. The 
-executable can then be found in the Go binary directory, usually something like `$GO_ROOT/bin` and it's called 
+executable can then be found in the Go binary directory (usually something like `$GO_ROOT/bin`) and it's called 
 `systemd-docker`.
 
 It can also be build using a stand-alone docker image, see [here]()
@@ -36,14 +36,12 @@ can be used and everything should stay in sync.
 
 In the `systemd` unit files, the instruction to launch the Docker container takes the form 
 
-`ExecStart=systemd-docker [<sysd-dkr_opts>] run [<dkr-run_opts>] <img_name> [<cnt_params>]`
+`ExecStart=systemd-docker [<systemd-docker_options>] run [<docker-run_parameters>]`
 
 where
-- `<sysd-dkr_opts>` are the [flags to configure systemd-docker](#systemd-docker-options)
-- `<dkr-run_opts>` are the usual flags for `docker run` - a few restrictions apply, see section 
-  [Docker restrictions](#docker-restrictions)
-- `<img_name>` is the name of the Docker image to run
-- `<cnt_params>` are the parameters provided to the container when it's started  
+- `<systemd-docker_options>` are the [flags to configure systemd-docker](#systemd-docker-options)
+- `<docker-run_paramters>` are simply forwarded to `docker run`. A few restrictions apply,  
+  see section [Docker run restrictions](#docker-restrictions)
 
 Note: `systemd-docker` should be in a folder which is part of `$PATH` to be able to use it globally, otherwise 
       use a absolute path like f.ex. `ExecStart=/opt/bin/systemd-docker ...` 
