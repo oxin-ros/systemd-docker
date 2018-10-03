@@ -40,8 +40,8 @@ In the `systemd` unit files, the instruction to launch the Docker container take
 
 where
 - `<systemd-docker_options>` are the [flags to configure systemd-docker](#systemd-docker-options)
-- `<docker-run_paramters>` are simply forwarded to `docker run`. A few restrictions apply,  
-  see section [Docker run restrictions](#docker-restrictions)
+- `<docker-run_parameters>` are forwarded to `docker run`. A few restrictions apply, see section 
+  [Docker run restrictions](#docker-restrictions)
 
 Note: `systemd-docker` should be in a folder which is part of `$PATH` to be able to use it globally, otherwise 
       use a absolute path like f.ex. `ExecStart=/opt/bin/systemd-docker ...` 
@@ -65,7 +65,7 @@ TimeoutStopSec=15
 [Install]
 WantedBy=multi-user.target
 ```
-The use of `%n` is a `systemd` feature explained in the [automatic container naming section](#automatic-container-naming)
+The use of `%n` is a `systemd` feature explained in the [automatic container naming section](#automatic-container-naming).
 Supposing that the example given above is stored under the likely path `/etc/systemd/system/nginx.service`, the 
 container is named *nginx*. 
  
@@ -89,7 +89,7 @@ derived from it's filename. This  allows to write a self-configuring `ExecStart`
 ## Use of systemd environment variables
 `systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject
 variables into other instructions, the pattern is *${variable_name}*. With the flag `-e` they can be passed to 
-`docker run ...` (note that the -e flags come after the `run` keyword)
+`docker run`
 
 Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
 
@@ -98,15 +98,15 @@ Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
 
 # Systemd-docker options
 ## Cgroups
-By default all application cgroups are moved to systemd. This implies that the `docker run` flags  `--cpuset` and/or `-m`
-are incompatible. It's also possible to control which cgroups are transfered using individual  `--cgroups` flags for
-each cgroup to transfer. **`-cgroups name=systemd` is the strict minimum, if it's not specified, `systemd` will lose track
-of the container**.
+By default all application cgroups are moved to systemd. It's also possible to control individually which cgroups are 
+transfered using a `--cgroups` flags for each cgroup to transfer. **`-cgroups name=systemd` is the strict minimum to have  
+`systemd` supervise the container**.
 This implies that the `docker run` flags  `--cpuset` and/or `-m` are incompatible.
 
-`ExecStart=/opt/bin/systemd-docker --cgroups name=systemd --cgroups=cpu run --rm --name %n nginx`
+Example: `ExecStart=systemd-docker ... --cgroups name=systemd --cgroups=cpu ... run ...`
 
-The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the others, like the freezer cgroup.
+The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the 
+others, like the freezer cgroup.
 
 ## Logging
 By default the container's stdout/stderr is written to the system journal. This may be disabled with `--logs=false`.
@@ -159,7 +159,7 @@ alive until the `systemd` service is stopped or the container exits.
 # Known issues
 ## Inconsistent cgroup
 CentOS 7 is inconsistent in the way it handles some cgroups. It has `3:cpuacct,cpu:/user.slice` in `/proc/[pid]/cgroups` but the corresponding path 
-`/sys/fs/cgroup/cpu,cpuacct/` doesn't exist. This causes `systemd-docker` to fail when it tries to move the PIDs there. To solve this the systemd
+`/sys/fs/cgroup/cpu,cpuacct/` doesn't exist. This causes `systemd-docker` to fail when it tries to move the PIDs there. To solve this the `name=systemd`
 cgroup must be explicitely mentioned: 
 
 `systemd-docker ... --cgroups name=systemd ... run ...`
