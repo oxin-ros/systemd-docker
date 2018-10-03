@@ -25,7 +25,7 @@ Supposing that a Go environment is available, the build instruction is `go get g
 executable can then be found in the Go binary directory (usually something like `$GO_ROOT/bin`) and it's called 
 `systemd-docker`.
 
-It can also be build using a stand-alone docker image, see [here]()
+It can also be build using a stand-alone docker image, see [here](https://github.com/DonTseTse/systemd-docker_build-container)
 
 # Use
 Both
@@ -36,7 +36,7 @@ can be used and everything should stay in sync.
 
 In the `systemd` unit files, the instruction to launch the Docker container takes the form 
 
-`ExecStart=systemd-docker [<systemd-docker_options>] run [<docker-run_parameters>]`
+`ExecStart=systemd-docker [<systemd-docker_options>] run <docker-run_parameters>`
 
 where
 - `<systemd-docker_options>` are the [flags to configure systemd-docker](#systemd-docker-options)
@@ -46,7 +46,7 @@ where
 Note: `systemd-docker` should be in a folder which is part of `$PATH` to be able to use it globally, otherwise 
       use a absolute path like f.ex. `ExecStart=/opt/bin/systemd-docker ...` 
 
-The example below show a typical unit file, here for a Nginx container:
+The example below shows a typical `systemd` unit file using systemd-docker, here for a Nginx container:
 ```ini
 [Unit]
 Description=Nginx
@@ -65,7 +65,7 @@ TimeoutStopSec=15
 [Install]
 WantedBy=multi-user.target
 ```
-The use of `%n` is a `systemd` feature explained in the [automatic container naming section](#automatic-container-naming).
+The use of `%n` is a `systemd` feature explained in the [automatic container naming](#automatic-container-naming).
 Supposing that the example given above is stored under the likely path `/etc/systemd/system/nginx.service`, the 
 container is named *nginx*. 
  
@@ -88,13 +88,13 @@ derived from it's filename. This  allows to write a self-configuring `ExecStart`
 
 ## Use of systemd environment variables
 `systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject
-variables into other instructions, the pattern is *${variable_name}*. With the flag `-e` they can be passed to 
-`docker run`
+variables into other instructions, the pattern is *${variable_name}*. With the `docker run` flag `-e` they can be passed 
+from `systemd` to the Docker container
 
 Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
 
-`systemd-docker` has an option to pass on all defined environment variables using the `--env` flag, explained in the 
-[environment variables section](#environment-variables)
+`systemd-docker` has an option to pass on all defined environment variables using the `--env` flag, explained 
+[here](#environment-variables)
 
 # Systemd-docker options
 ## Cgroups
