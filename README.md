@@ -1,17 +1,14 @@
 # Introduction
-This repository provides a wrapper which improves the integration of Docker containers run as `systemd` services. 
+This repository provides a wrapper which improves the handling of Docker containers run as `systemd` services. 
 
-Usually, a Docker container is launched with `docker run ...` where `docker` is the *Docker client* - a command 
-line utility connected to the *Docker engine running in another process*, which executes the *image builds, running 
-containers, etc. in yet other processes*. If a Docker container is started as a `systemd` service using 
-an instruction like `ExecStart=docker run ...`, **`systemd` interacts with the Docker client process instead of the 
-actual container process, which can lead to a bunch of odd situations**:
+If a Docker container is started as a `systemd` service using the "usual" `docker run ...` instruction, f.ex. 
+`ExecStart=docker run ...`, **`systemd` interacts with the Docker client process instead of the actual container 
+process, which can lead to a bunch of odd situations** regarding `systemd`'s capacity to monitor process health:
 - the client can detach or crash while the container is doing fine, yet `systemd` would trigger failure handling 
 - worse, the container crashes and should be taken care of, but the client stalled - `systemd` is blind and won't do  
   anything
-- when a container is stopped with `docker stop ...`, attached client processes exit with an error code instead of 
-  0/success. Unless specially configued, this also triggers `systemd`'s failure handling in an inappropriate 
-  situation
+- when a container is stopped with `docker stop ...`, attached client processes exit with an error code, not 
+  0/success, which triggers `systemd`'s failure handling unless it's specially configured to ignore this
 
 The **key thing that this wrapper does is** that it moves the container process from the *cgroups set up by Docker* 
 to the *service unit's cgroup* **to give `systemd` the supervision of the actual Docker container process**.  
@@ -42,14 +39,14 @@ In the `systemd` unit files, the instruction to launch the Docker container take
 `ExecStart=systemd-docker [<sysd-dkr_opts>] run [<dkr-run_opts>] <img_name> [<cnt_params>]`
 
 where
-- `<sysd-dkr_opts>` are the systemd-docker flags explained in the [systemd-docker Options](#systemd-docker-options)
-- `<dkr-run_opts>` are the usual flags defined by `docker run` - a few restrictions apply, see section 
+- `<sysd-dkr_opts>` are the flags explained in the [systemd-docker Options](#systemd-docker-options)
+- `<dkr-run_opts>` are the usual flags for `docker run` - a few restrictions apply, see section 
   [Docker restrictions](#docker-restrictions)
 - `<img_name>` is the name of the Docker image to run
 - `<cnt_params>` are the parameters provided to the container when it's started  
 
-Note: like any executable, `systemd-docker` should be in folder that is part of `$PATH` to be able to use it globally, 
-      otherwise use a absolute path in the instruction like f.ex. `ExecStart=/opt/bin/systemd-docker ...` 
+Note: like any executable, `systemd-docker` should be in a folder which is part of `$PATH` to be able to use it globally, 
+      otherwise use a absolute path in the `systemd` instruction like f.ex. `ExecStart=/opt/bin/systemd-docker ...` 
 
 Here's an unit file example to run a Nginx container:
 ```ini
@@ -70,9 +67,9 @@ TimeoutStopSec=15
 [Install]
 WantedBy=multi-user.target
 ```
-The use of `%n` is a `systemd` feature explained in the [automtic container naming section](#automatic-container-naming)
+The use of `%n` is a `systemd` feature explained in the [automatic container naming section](#automatic-container-naming)
 Supposing that the example given above is stored under the likely path `/etc/systemd/system/nginx.service`, the 
-container is named nginx. 
+container is named *nginx*. 
  
 Note: `Type=notify` and `NotifyAccess=all` are important
 
@@ -81,19 +78,17 @@ Container names are compulsory to make sure that a `systemd` service always rela
 While it may seem as if that could be omitted as long as the `--rm` flag used, that's misleading: the deletion process 
 triggered by this flag is actually part of the Docker client logic and if the client detaches for whatever reason from 
 the running container, the information is lost (even if another client is re-attached later) and *the container will 
-**not** be deleted*.
- 
-`systemd-docker` adds an additional check and looks for the named container when `run` is called - if one exists and 
-is stopped, it will be deleted.
+**not** be deleted* upon termination. `systemd-docker` adds an additional check and looks for the named container when 
+`systemd-docker ... run ...` is called - if a stopped container exists, it will be deleted.
 
 # Systemd integration details
 ## Automatic container naming
 `systemd` populates a range of variables among which `%n` stands for the name of service, derived from it's filename. 
-This  allows to write a self-configuring `ExecStart` instructions using the parameters
+This  allows to write a self-configuring `ExecStart` instruction using the parameters
  
 `ExecStart=systemd-docker ... run ... --name %n --rm ...`
 
-## Use of `systemd` environment variables
+## Use of systemd environment variables
 `systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject
 variables into other instructions, the pattern is *${variable_name}*. With the flag -e they can be passed to the 
 container (and not to `systemd-docker`)
@@ -105,25 +100,20 @@ Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
 
 # Systemd-docker options
 ## Logging
-By default the container's stdout/stderr is written to the system journal. This may be disables with `--logs=false`.
+By default the container's stdout/stderr is written to the system journal. This may be disabled with `--logs=false`.
 
 Example: `ExecStart=systemd-docker ... --logs=false ... run ...`
 
 ## Environment Variables
-`systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject 
-variables into other instructions, the pattern is *${variable_name}*
-
-Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...` 
-
-The systemd environment variables are automatically passed through to the docker container if the `--env` flag is provided.  
-This will essentially read all the current environment variables and add the appropriate `-e ...` flags to the docker run 
-command.  For example:
+The `systemd` environment variables are automatically passed through to the Docker container if the `--env` flag is set.  
+It will essentially read all the current environment variables and add the appropriate `-e ...` flags to the 
+`docker run` command.
 
 ```
 EnvironmentFile=/etc/environment
-ExecStart=systemd-docker --env run ...
+ExecStart=systemd-docker ... --env ... run ...
 ```
-The contents of `/etc/environment` will be added to the docker run command.
+In the example above, all environment variables defined in `/etc/environment` will be passed to the `docker run` command.
 
 ## Cgroups
 By default all application cgroups are moved to systemd. This implies that the `docker run` flags  `--cpuset` and/or `-m` 
@@ -137,7 +127,7 @@ This implies that the `docker run` flags  `--cpuset` and/or `-m` are incompatibl
 The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the others, like the freezer cgroup.
 
 ## PID File
-To create a PID file for the container, just add `--pid-file=<path/to/pid_file>`.
+To create a PID file for the container, use the flag `--pid-file=<path/to/pid_file>`.
 
 Example: `ExecStart=systemd-docker ... --pid-file=/var/run/%n.pid ... run ...`
 
