@@ -61,7 +61,6 @@ NotifyAccess=all
 ExecStart=systemd-docker run --rm --name %n nginx
 Restart=always
 RestartSec=10s
-
 TimeoutStartSec=120
 TimeoutStopSec=15
 
@@ -102,7 +101,7 @@ Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
 [here](#environment-variables)
 
 ## Systemd notifications
-`systemd-notify` is used to schedule and sequence the start-up of the different services. The `systemd` 
+`systemd-notify` can be used to schedule and sequence the start-up of different services. The `systemd` 
 [documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html) explains the configurations available
 in unit files: 
 - `Type=notify`: "... it is expected that the daemon sends a notification message via sd_notify(3) or an equivalent call when 
@@ -110,8 +109,13 @@ in unit files:
   sent."
 - `NotifyAccess=all`: "Controls access to the service status notification socket, as accessible via the sd_notify(3) call. ...
   If all, all services updates from all members of the service's control group are accepted."
+
 `systemd-docker` sends this notification and it can also be configured to delegate this to the container as explained 
 [here](#systemd-notify-support)
+
+Please be aware that `systemd-notify` comes with its own quirks - more info can be found in this
+[mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, `systemd-notify` is not reliable because often
+the child dies before `systemd` has time to determine which cgroup it is a member of.
 
 # Systemd-docker options
 ## Cgroups
@@ -153,10 +157,6 @@ delegated to the container itself. To achieve this, `systemd-docker` bind mounts
 NOTIFY_SOCKET environment variable. 
 
 Example: `ExecStart=systemd-docker ... --notify ... run ...`
-
-Please be aware that `systemd-notify` comes with its own quirks - more info can be found in this 
-[mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, `systemd-notify` is not reliable because often 
-the child dies before `systemd` has time to determine which cgroup it is a member of.
 
 ## Container removal behavior
 
