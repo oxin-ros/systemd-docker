@@ -54,11 +54,14 @@ After=docker.service
 Requires=docker.service
 
 [Service]
+#--- if systemd-notify is used
+Type=notify
+NotifyAccess=all
+#------------------------
 ExecStart=systemd-docker run --rm --name %n nginx
 Restart=always
 RestartSec=10s
-Type=notify
-NotifyAccess=all
+
 TimeoutStartSec=120
 TimeoutStopSec=15
 
@@ -69,7 +72,9 @@ The use of `%n` is a `systemd` feature explained in the [automatic container nam
 Supposing that the example given above is stored under the likely path `/etc/systemd/system/nginx.service`, the 
 container is named *nginx*. 
  
-Note: `Type=notify` and `NotifyAccess=all` are important
+For the details about `Type=notify` and `NotifyAccess=all` and `systemd-notify`, see 
+[systemd notifications](#systemd-notifications). For a general documentation of all `systemd` unit file configurations
+options, see this [documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html).
 
 ## Container names
 Container names are compulsory to make sure that each `systemd` service always relates to/acts upon the same container(s). 
@@ -95,6 +100,18 @@ Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
 
 `systemd-docker` has an option to pass on all defined environment variables using the `--env` flag, explained 
 [here](#environment-variables)
+
+## Systemd notifications
+`systemd-notify` is used to schedule and sequence the start-up of the different services. The `systemd` 
+[documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html) explains the configurations available
+in unit files: 
+- `Type=notify`: "... it is expected that the daemon sends a notification message via sd_notify(3) or an equivalent call when 
+  it has finished starting up. systemd will proceed with starting follow-up units after this notification message has been 
+  sent."
+- `NotifyAccess=all`: "Controls access to the service status notification socket, as accessible via the sd_notify(3) call. ...
+  If all, all services updates from all members of the service's control group are accepted."
+`systemd-docker` sends this notification and it can also be configured to delegate this to the container as explained 
+[here](#systemd-notify-support)
 
 # Systemd-docker options
 ## Cgroups
