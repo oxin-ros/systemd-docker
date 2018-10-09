@@ -103,9 +103,9 @@ Example: `ExecStart=/path/to/systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} 
 [here](#environment-variables)
 
 ## Systemd notifications (systemd-notify)
-`systemd-notify` can be used to schedule and sequence the start-up of different services. The `systemd` 
-[documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html) explains the configurations available
-in unit files: 
+`systemd-notify` can be used to schedule and sequence the launch of different services. The `systemd` 
+[documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html) explains the configuration optionss 
+available in unit files: 
 - `Type=notify`: "... it is expected that the daemon sends a notification message via sd_notify(3) or an equivalent call when 
   it has finished starting up. systemd will proceed with starting follow-up units after this notification message has been 
   sent."
@@ -186,6 +186,6 @@ cgroup must be explicitely mentioned:
 See https://github.com/ibuildthecloud/systemd-docker/issues/15 for details.
 
 # License
-See [Repository history and credits](#repository-history-and-credits) for acknowledgments. The work on this repository was done in 2018 by DonTseTse. 
+See [repository history and credits](#repository-history-and-credits) for acknowledgments. The work on this repository was done in 2018 by DonTseTse. 
 
 Licensed under the [Apache License, Version 2.0](LICENSE)
