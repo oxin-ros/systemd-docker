@@ -23,7 +23,7 @@ The motivation is explained in this [Docker issue #6791](https://github.com/dock
 - I removed all outdated and broken elements and created a new compilation docker container which can be found [here]()
 
 # Installation
-Supposing that a Go environment is available, the build instruction is `go get github.com/dontsetse/systemd-docker`. The 
+Supposing that a Go environment is available, the build instruction is `go get github.com/DonTseTse/systemd-docker`. The 
 executable can then be found in the Go binary directory (usually something like `$GO_ROOT/bin`) and it's called 
 `systemd-docker`.
 
@@ -68,12 +68,13 @@ TimeoutStopSec=15
 [Install]
 WantedBy=multi-user.target
 ```
-The use of `%n` is a `systemd` feature explained in the [automatic container naming](#automatic-container-naming).
-Supposing that the example given above is stored under the likely path `/etc/systemd/system/nginx.service`, the 
-container is named *nginx*. 
+The use of `%n` is a `systemd` feature explained [here](#automatic-container-naming). Supposing that the unit file example 
+given above is stored under the likely path `/etc/systemd/system/nginx.service`, the container is named *nginx*. 
  
 For the details about `Type=notify` and `NotifyAccess=all` and `systemd-notify`, see 
-[systemd notifications](#systemd-notifications). For a general documentation of all `systemd` unit file configurations
+[systemd notifications](#systemd-notifications). 
+
+For a general documentation of all `systemd` unit file configurations
 options, see this [documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html).
 
 ## Container names
@@ -101,7 +102,7 @@ Example: `ExecStart=/path/to/systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} 
 `systemd-docker` has an option to pass on all defined environment variables using the `--env` flag, explained 
 [here](#environment-variables)
 
-## Systemd notifications
+## Systemd notifications (systemd-notify)
 `systemd-notify` can be used to schedule and sequence the start-up of different services. The `systemd` 
 [documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html) explains the configurations available
 in unit files: 
@@ -111,8 +112,8 @@ in unit files:
 - `NotifyAccess=all`: "Controls access to the service status notification socket, as accessible via the sd_notify(3) call. ...
   If all, all services updates from all members of the service's control group are accepted."
 
-`systemd-docker` sends this notification and it can also be configured to delegate this to the container as explained 
-[here](#systemd-notify-support)
+By default `systemd-docker` will send READY=1 to the `systemd` notification socket but it can also be configured to delegate 
+this to the container as explained [here](#systemd-notify-support).
 
 Please be aware that `systemd-notify` comes with its own quirks - more info can be found in this
 [mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, `systemd-notify` is not reliable because often
@@ -147,21 +148,21 @@ ExecStart=systemd-docker ... --env ... run ...
 In the example above, all environment variables defined in `/etc/environment` will be passed to the `docker run` command.
 
 ## PID File
-To create a PID file for the container, use the flag `--pid-file=<path/to/pid_file>`.
+To create a PID file for the container, use the flag `--pid-file=</path/to/pid_file>`.
 
 Example: `ExecStart=/path/to/systemd-docker ... --pid-file=/var/run/%n.pid ... run ...`
 
 ## systemd-notify support
 
-By default `systemd-docker` will send READY=1 to the `systemd` notification socket.  With the `systemd-docker` `--notify` flag the READY=1 call is 
-delegated to the container itself. To achieve this, `systemd-docker` bind mounts the `systemd` notification socket into the container and sets the 
-NOTIFY_SOCKET environment variable. 
+The `systemd-docker` flag `--notify` makes `systemd-docker` delegate the `systemd-notify` `READY=1` call to the container 
+itself. To allow the container to achieve this, `systemd-docker` bind mounts the `systemd` notification socket into the 
+container and sets the NOTIFY_SOCKET environment variable. 
 
 Example: `ExecStart=/path/to/systemd-docker ... --notify ... run ...`
 
 ## Container removal behavior
 
-To disable `systemd-docker`'s "stopped container removal" procedure, the flag `... --rm=false ...` can be used.
+To disable `systemd-docker`'s "remove stopped container" procedure, the flag `... --rm=false ...` can be used.
 
 Example: `ExecStart=/path/to/systemd-docker ... --rm=false ... run ...`
 
@@ -186,4 +187,5 @@ See https://github.com/ibuildthecloud/systemd-docker/issues/15 for details.
 
 # License
 See [Repository history and credits](#repository-history-and-credits) for acknowledgments. The work on this repository was done in 2018 by DonTseTse. 
+
 Licensed under the [Apache License, Version 2.0](LICENSE)
