@@ -7,8 +7,10 @@ process, which can lead to situations where `systemd`'s capacity to monitor proc
 - the client can detach or crash while the container is doing fine, yet `systemd` would trigger failure handling 
 - worse, the container crashes and should be taken care of, but the client stalled - `systemd` is blind and won't do  
   anything
-- when a container is stopped with `docker stop ...`, attached client processes exit with an error code, not 
-  0/success, which triggers `systemd`'s failure handling unless it's explicitely configured to ignore this
+- when a container is stopped with `docker stop ...`, attached client processes exit with error code 143, not 
+  0/success, which triggers `systemd`'s failure handling unless it's explicitely configured to ignore this using 
+  `SuccessExitStatus=143`, but that's a workaround. The problem is well explained in
+  [this issue description](https://github.com/jenkinsci/docker/issues/485)
 
 The **key thing that this wrapper does is** that it moves the container process from the *cgroups set up by Docker* 
 to the *service unit's cgroup* **to give `systemd` the supervision of the actual Docker container process**.  
@@ -36,17 +38,16 @@ can be used and everything should stay in sync.
 
 In the `systemd` unit files, the instruction to launch the Docker container takes the form 
 
-`ExecStart=systemd-docker [<systemd-docker_options>] run <docker-run_parameters>`
+`ExecStart=/path/to/systemd-docker [<systemd-docker_options>] run <docker-run_parameters>`
 
 where
+- `/path/to/systemd-docker` is the absolute path of the `systemd-docker` executable
 - `<systemd-docker_options>` are the [flags to configure systemd-docker](#systemd-docker-options)
 - `<docker-run_parameters>` are forwarded to `docker run`. A few restrictions apply, see section 
   [Docker run restrictions](#docker-restrictions)
 
-Note: `systemd-docker` should be in a folder which is part of `$PATH` to be able to use it globally, otherwise 
-      use a absolute path like f.ex. `ExecStart=/opt/bin/systemd-docker ...` 
-
-The example below shows a typical `systemd` unit file using systemd-docker, here for a Nginx container:
+The example below shows a typical `systemd` unit file using `systemd-docker` (supposed to be in `/usr/bin`), running a 
+Nginx container:
 ```ini
 [Unit]
 Description=Nginx
@@ -58,7 +59,7 @@ Requires=docker.service
 Type=notify
 NotifyAccess=all
 #------------------------
-ExecStart=systemd-docker run --rm --name %n nginx
+ExecStart=/usr/bin/systemd-docker run --rm --name %n nginx
 Restart=always
 RestartSec=10s
 TimeoutStartSec=120
@@ -88,14 +89,14 @@ and looks for the named container when `systemd-docker ... run ...` is called - 
 While it processes unit files, `systemd` populates a range of variables among which `%n` stands for the name of service, 
 derived from it's filename. This  allows to write a self-configuring `ExecStart` instruction using the parameters
  
-`ExecStart=systemd-docker ... run ... --name %n --rm ...`
+`ExecStart=/path/to/systemd-docker ... run ... --name %n --rm ...`
 
 ## Use of systemd environment variables
 `systemd` handles environment variables with the instructions `Environment=...` and `EnvironmentFile=...`. To inject
 variables into other instructions, the pattern is *${variable_name}*. With the `docker run` flag `-e` they can be passed 
 from `systemd` to the Docker container
 
-Example: `ExecStart=systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
+Example: `ExecStart=/path/to/systemd-docker ... run -e ABC=${ABC} -e XYZ=${XYZ} ...`
 
 `systemd-docker` has an option to pass on all defined environment variables using the `--env` flag, explained 
 [here](#environment-variables)
@@ -124,7 +125,7 @@ transfered using a `--cgroups` flags for each cgroup to transfer. **`-cgroups na
 `systemd` supervise the container**.
 This implies that the `docker run` flags  `--cpuset` and/or `-m` are incompatible.
 
-Example: `ExecStart=systemd-docker ... --cgroups name=systemd --cgroups=cpu ... run ...`
+Example: `ExecStart=/path/to/systemd-docker ... --cgroups name=systemd --cgroups=cpu ... run ...`
 
 The above command will use the `name=systemd` and `cpu` cgroups of systemd but then use Docker's cgroups for all the 
 others, like the freezer cgroup.
@@ -132,7 +133,7 @@ others, like the freezer cgroup.
 ## Logging
 By default the container's stdout/stderr is written to the system journal. This may be disabled with `--logs=false`.
 
-Example: `ExecStart=systemd-docker ... --logs=false ... run ...`
+Example: `ExecStart=/path/to/systemd-docker ... --logs=false ... run ...`
 
 ## Environment Variables
 The `systemd` environment variables are automatically passed through to the Docker container if the `--env` flag is set.  
@@ -148,7 +149,7 @@ In the example above, all environment variables defined in `/etc/environment` wi
 ## PID File
 To create a PID file for the container, use the flag `--pid-file=<path/to/pid_file>`.
 
-Example: `ExecStart=systemd-docker ... --pid-file=/var/run/%n.pid ... run ...`
+Example: `ExecStart=/path/to/systemd-docker ... --pid-file=/var/run/%n.pid ... run ...`
 
 ## systemd-notify support
 
@@ -156,13 +157,13 @@ By default `systemd-docker` will send READY=1 to the `systemd` notification sock
 delegated to the container itself. To achieve this, `systemd-docker` bind mounts the `systemd` notification socket into the container and sets the 
 NOTIFY_SOCKET environment variable. 
 
-Example: `ExecStart=systemd-docker ... --notify ... run ...`
+Example: `ExecStart=/path/to/systemd-docker ... --notify ... run ...`
 
 ## Container removal behavior
 
 To disable `systemd-docker`'s "stopped container removal" procedure, the flag `... --rm=false ...` can be used.
 
-Example: `ExecStart=systemd-docker ... --rm=false ... run ...`
+Example: `ExecStart=/path/to/systemd-docker ... --rm=false ... run ...`
 
 # Docker restrictions
 ## --cpuset and/or -m
@@ -179,9 +180,10 @@ CentOS 7 is inconsistent in the way it handles some cgroups. It has `3:cpuacct,c
 `/sys/fs/cgroup/cpu,cpuacct/` doesn't exist. This causes `systemd-docker` to fail when it tries to move the PIDs there. To solve this the `name=systemd`
 cgroup must be explicitely mentioned: 
 
-`systemd-docker ... --cgroups name=systemd ... run ...`
+`/path/to/systemd-docker ... --cgroups name=systemd ... run ...`
 
 See https://github.com/ibuildthecloud/systemd-docker/issues/15 for details.
 
 # License
-[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+See [Repository history and credits](#repository-history-and-credits) for acknowledgments. The work on this repository was done in 2018 by DonTseTse. 
+Licensed under the [Apache License, Version 2.0](LICENSE)
