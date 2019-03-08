@@ -1,8 +1,18 @@
-systemd-docker (0.2.1+dfsg-3) UNRELEASED; urgency=medium
+systemd-docker (0.2.1+dfsg-3) unstable; urgency=medium
 
+  [ Alexandre Viau ]
   * Point Vcs-* urls to salsa.debian.org.
 
- -- Alexandre Viau <aviau@debian.org>  Mon, 02 Apr 2018 23:51:41 -0400
+  [ Antoine Beaupré ]
+  * add myself to uploaders
+  * bump standards, no change
+  * simplify copyright and gbp.conf files
+  * upgrade watch file
+  * drop various hacks that are not necessary with newer dh-golang
+  * upstream tarball now clean, +dfsg suffix should be removed on next
+    upstream release
+
+ -- Antoine Beaupré <anarcat@debian.org>  Thu, 07 Mar 2019 19:36:09 -0500
 
 systemd-docker (0.2.1+dfsg-2) unstable; urgency=medium
 
