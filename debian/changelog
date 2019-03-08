@@ -4,7 +4,7 @@ systemd-docker (0.2.1+dfsg-3) unstable; urgency=medium
   * Point Vcs-* urls to salsa.debian.org.
 
   [ Antoine Beaupré ]
-  * add myself to uploaders
+  * fix team address
   * bump standards, no change
   * simplify copyright and gbp.conf files
   * upgrade watch file
