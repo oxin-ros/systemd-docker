@@ -1,4 +1,4 @@
-systemd-docker (0.2.1+dfsg-3) unstable; urgency=medium
+systemd-docker (0.2.1+dfsg-3) UNRELEASED; urgency=medium
 
   [ Alexandre Viau ]
   * Point Vcs-* urls to salsa.debian.org.
