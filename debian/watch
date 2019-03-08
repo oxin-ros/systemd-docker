@@ -1,7 +1,4 @@
-version=3
-
-opts=\
-repacksuffix=+dfsg,\
-dversionmangle=s{\+dfsg\d*}{},\
- https://github.com/ibuildthecloud/systemd-docker/releases \
- .*/archive/v?(\d[-\d\.]+)\.tar\.gz
+version=4
+opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/systemd-docker-\$1\.tar\.gz/,\
+uversionmangle=s/(\d)[_\.\-\+]?(RC|rc|pre|dev|beta|alpha)[.]?(\d*)$/\$1~\$2\$3/ \
+  https://github.com/ibuildthecloud/systemd-docker/tags .*/v?(\d\S*)\.tar\.gz
