@@ -3,7 +3,7 @@ Section: devel
 Priority: optional
 Maintainer: Debian Go Packaging Team <team+pkg-go@tracker.debian.org>
 Uploaders: Antoine Beaupré <anarcat@debian.org>
-Build-Depends: debhelper (>= 11),
+Build-Depends: debhelper-compat (= 12),
                dh-golang,
                golang-any,
                golang-github-docker-docker-dev,
