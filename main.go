@@ -302,7 +302,7 @@ func getCgroupsForPid(pid int) (map[string]string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.SplitN(scanner.Text(), ":", 3)
-		if len(line) != 3 {
+		if len(line) != 3 || line[1] == "" {
 			continue
 		}
 
