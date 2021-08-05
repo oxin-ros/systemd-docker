@@ -19,8 +19,7 @@ import (
 	// flag "github.com/docker/docker/pkg/mflag"
 
 	// "github.com/weaveworks/docker/opts"
-	// flag "github.com/weaveworks/docker/pkg/mflag"
-	flag "github.com/agend07/docker/pkg/mflag"
+	flag "github.com/weaveworks/common/mflag"
 
 	dockerClient "github.com/fsouza/go-dockerclient"
 )
