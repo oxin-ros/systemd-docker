@@ -1,21 +1,25 @@
 {
-	"name": "systemd-docker:v1.3.0",
-	"image": "tomhp.fritz.box:5555/docker/devenv:v1.3.0",
+	"name": "systemd-docker:v1.4.2",
+	"image": "tomhp.fritz.box:5555/docker/devenv:v1.4.2",
 	"containerUser": "build-user",
 	"runArgs" : [
 		"--rm",
-		"--privileged"
+		"--privileged",
+        "--pid=host",
+		"--network=host"
 	],
 	"workspaceMount": "source=${localWorkspaceFolder},target=/home/build-user/s,type=bind,consistency=delegated",
 	"workspaceFolder": "/home/build-user/s",
 	"mounts": [
 		"type=bind,source=${env:HOME}/.ssh,target=/home/build-user/.ssh",
-		"type=bind,source=${localWorkspaceFolder}/Build/pbuilder/focal,target=/var/cache/pbuilder/result"
+		"type=bind,source=${localWorkspaceFolder}/Build/pbuilder/focal,target=/var/cache/pbuilder/result",
+		"type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock",
+		"type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup"
 	],
 	"settings": {
-		"terminal.integrated.shell.linux": "/bin/zsh"
+		"terminal.integrated.defaultProfile.linux": "zsh"
+		//"terminal.integrated.shell.linux": "/bin/zsh"
 	},
-	"postCreateCommand": "./.devcontainer/postCreateCommand.sh",
 	"extensions": [
 		"tomiturtiainen.rf-intellisense",
 		"plorefice.devicetree",
@@ -23,6 +27,7 @@
 		"alefragnani.bookmarks",
 		"donjayamanne.githistory",
 		"ms-vscode.cpptools",
-		"golang.go"
+		"golang.go",
+		"ethan-reesor.vscode-go-test-adapter"
 	]
 }

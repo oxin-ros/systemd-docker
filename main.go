@@ -359,7 +359,7 @@ func moveCgroups(c *Context) (bool, error) {
 
 	if c.AllCgroups || c.Cgroups == nil || len(c.Cgroups) == 0 {
 		ns = make([]string, 0, len(containerCgroups))
-		for value, _ := range containerCgroups {
+		for value := range containerCgroups {
 			ns = append(ns, value)
 		}
 	} else {

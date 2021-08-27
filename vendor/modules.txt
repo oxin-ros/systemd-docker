@@ -2,11 +2,14 @@
 github.com/Azure/go-ansiterm
 github.com/Azure/go-ansiterm/winterm
 # github.com/Microsoft/go-winio v0.5.0
+## explicit
 github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
 # github.com/containerd/containerd v1.5.5
+## explicit
 github.com/containerd/containerd/pkg/userns
 # github.com/docker/docker v20.10.3-0.20210804232411-deda3d4933d3+incompatible
+## explicit
 github.com/docker/docker/api/types
 github.com/docker/docker/api/types/blkiodev
 github.com/docker/docker/api/types/container
@@ -35,9 +38,12 @@ github.com/docker/go-connections/nat
 # github.com/docker/go-units v0.4.0
 github.com/docker/go-units
 # github.com/fsouza/go-dockerclient v1.7.2
+## explicit
 github.com/fsouza/go-dockerclient
 # github.com/gogo/protobuf v1.3.2
 github.com/gogo/protobuf/proto
+# github.com/google/go-cmp v0.5.6
+## explicit
 # github.com/moby/sys/mount v0.2.0
 github.com/moby/sys/mount
 # github.com/moby/sys/mountinfo v0.4.1
@@ -58,10 +64,14 @@ github.com/opencontainers/runc/libcontainer/user
 github.com/pkg/errors
 # github.com/sirupsen/logrus v1.8.1
 github.com/sirupsen/logrus
+# github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f
+## explicit
 # github.com/weaveworks/common v0.0.0-20210722103813-e649eff5ab4a
+## explicit
 github.com/weaveworks/common/mflag
 # golang.org/x/sys v0.0.0-20210426230700-d19ff857e887
 golang.org/x/sys/execabs
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
+# github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.8.1
