@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+export HOME = $(CURDIR)
+DH_BUILDDIR = obj-$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+
+%:
+	dh $@ --buildsystem=golang --with=golang
+
+override_dh_auto_build:
+	dh_auto_build
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+	dh_auto_install -- --no-source
+

@@ -204,8 +204,8 @@ func TestBadExec(t *testing.T) {
 
 	if e, ok := err.(*exec.ExitError); ok {
 		if status, ok := e.Sys().(syscall.WaitStatus); ok {
-			if status.ExitStatus() != 2 {
-				log.Fatal("Expect 2 exit code got ", status.ExitStatus())
+			if status.ExitStatus() != 125 {
+				log.Fatal("Expect 125 exit code got ", status.ExitStatus())
 			}
 		}
 	} else {
@@ -215,7 +215,7 @@ func TestBadExec(t *testing.T) {
 
 func TestGoodExec(t *testing.T) {
 	c := &Context{
-		Args: []string{"-d", "busybox", "echo", "hi"},
+		Args: []string{"-d", "busybox", "ping", "-c10", "localhost"},
 	}
 
 	err := runContainer(c)
@@ -243,7 +243,7 @@ func TestParseCgroups(t *testing.T) {
 	if val, ok := cgroups["blkio"]; ok {
 		p := path.Join(SYSFS, "blkio", val)
 		if _, err := os.Stat(p); os.IsNotExist(err) {
-			log.Fatalf("Path does not exist %s", p, err)
+			log.Fatalf("Path does not exist %s err %d", p, err)
 		}
 	} else {
 		log.Fatal("Failed to find blkio cgroup", val)
@@ -252,7 +252,7 @@ func TestParseCgroups(t *testing.T) {
 
 func TestMoveCgroup(t *testing.T) {
 	c := &Context{
-		Args: []string{"-d", "busybox", "echo", "hi"},
+		Args: []string{"-d", "busybox", "ping", "-c10", "localhost"},
 	}
 
 	err := runContainer(c)
@@ -277,7 +277,7 @@ func TestMoveCgroup(t *testing.T) {
 }
 
 func TestRemoveNoLogs(t *testing.T) {
-	c, err := mainWithArgs([]string{"--logs=false", "run", "-rm", "busybox", "echo", "hi"})
+	c, err := mainWithArgs([]string{"--logs=false", "run", "-rm", "busybox", "ping", "-c10", "localhost"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -370,9 +370,9 @@ func TestNamedContainerNoRm(t *testing.T) {
 		t.Fatal("Should be the same container", container.ID, container2.ID)
 	}
 
-        if !container2.HostConfig.Privileged {
-                t.Fatal("Container2 is not privileged")
-        }
+	if !container2.HostConfig.Privileged {
+		t.Fatal("Container2 is not privileged")
+	}
 
 	deleteTestContainer(t)
 }

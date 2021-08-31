@@ -1,0 +1,37 @@
+systemd-docker (0.2.2) unstable; urgency=medium
+  * update package
+
+ -- Thomas Willetal <t.willetal@gmail.com>  Mon, 30 Aug 2021 19:36:09 -0500
+
+systemd-docker (0.2.1+dfsg-3) UNRELEASED; urgency=medium
+
+  [ Alexandre Viau ]
+  * Point Vcs-* urls to salsa.debian.org.
+
+  [ Antoine Beaupré ]
+  * fix team address
+  * bump standards, no change
+  * simplify copyright and gbp.conf files
+  * upgrade watch file
+  * drop various hacks that are not necessary with newer dh-golang
+  * upstream tarball now clean, +dfsg suffix should be removed on next
+    upstream release
+
+ -- Antoine Beaupré <anarcat@debian.org>  Thu, 07 Mar 2019 19:36:09 -0500
+
+systemd-docker (0.2.1+dfsg-2) unstable; urgency=medium
+
+  [ Nicolas Braud-Santoni ]
+  * Fixup dependencies (Closes: #829237)
+  * Bumping Standards-Version to 3.9.8
+
+  [ Paul Tagliamonte ]
+  * Use a secure transport for the Vcs-Git and Vcs-Browser URL
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Wed, 13 Jul 2016 23:27:09 +1000
+
+systemd-docker (0.2.1+dfsg-1) unstable; urgency=medium
+
+  * Initial release (Closes: #764784).
+
+ -- Dmitry Smirnov <onlyjob@debian.org>  Tue, 03 Nov 2015 01:55:32 +1100

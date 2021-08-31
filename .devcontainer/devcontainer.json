@@ -1,0 +1,33 @@
+{
+	"name": "systemd-docker:v1.4.2",
+	"image": "tomhp.fritz.box:5555/docker/devenv:v1.4.2",
+	"containerUser": "build-user",
+	"runArgs" : [
+		"--rm",
+		"--privileged",
+        "--pid=host",
+		"--network=host"
+	],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/home/build-user/s,type=bind,consistency=delegated",
+	"workspaceFolder": "/home/build-user/s",
+	"mounts": [
+		"type=bind,source=${env:HOME}/.ssh,target=/home/build-user/.ssh",
+		"type=bind,source=${localWorkspaceFolder}/Build/pbuilder/focal,target=/var/cache/pbuilder/result",
+		"type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock",
+		"type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup"
+	],
+	"settings": {
+		"terminal.integrated.defaultProfile.linux": "zsh"
+		//"terminal.integrated.shell.linux": "/bin/zsh"
+	},
+	"extensions": [
+		"tomiturtiainen.rf-intellisense",
+		"plorefice.devicetree",
+		"ms-azuretools.vscode-docker",
+		"alefragnani.bookmarks",
+		"donjayamanne.githistory",
+		"ms-vscode.cpptools",
+		"golang.go",
+		"ethan-reesor.vscode-go-test-adapter"
+	]
+}

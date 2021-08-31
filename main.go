@@ -16,7 +16,10 @@ import (
 	"time"
 
 	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
+	// flag "github.com/docker/docker/pkg/mflag"
+
+	// "github.com/weaveworks/docker/opts"
+	flag "github.com/weaveworks/common/mflag"
 
 	dockerClient "github.com/fsouza/go-dockerclient"
 )
@@ -298,7 +301,7 @@ func getCgroupsForPid(pid int) (map[string]string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.SplitN(scanner.Text(), ":", 3)
-		if len(line) != 3 {
+		if len(line) != 3 || line[1] == "" {
 			continue
 		}
 
@@ -356,7 +359,7 @@ func moveCgroups(c *Context) (bool, error) {
 
 	if c.AllCgroups || c.Cgroups == nil || len(c.Cgroups) == 0 {
 		ns = make([]string, 0, len(containerCgroups))
-		for value, _ := range containerCgroups {
+		for value := range containerCgroups {
 			ns = append(ns, value)
 		}
 	} else {

@@ -1,0 +1,121 @@
+variables:
+  BUILD_CONTAINER_FOCAL: "tomhp.fritz.box:5555/docker/pbuilder-container-focal:v1.5.2"
+  BUILD_CONTAINER_BIONIC: "tomhp.fritz.box:5555/docker/pbuilder-container-bionic:v1.5.1"
+stages:
+  - build
+  - deploy
+  - tag
+
+before_script:
+  - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+
+build:focal:
+  stage: build
+  tags:
+    - docker
+    - linux
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/build/pbuilder/focal
+    expire_in: 1 week
+  script:
+    - docker pull $BUILD_CONTAINER_FOCAL
+    - mkdir -p $CI_PROJECT_DIR/build/pbuilder/focal
+    - >
+      docker run
+      --workdir=/home/build-user/s
+      --rm
+      --privileged
+      --cap-add=sys_nice
+      --ulimit rtprio=99
+      -v /proc:/proc
+      -v $CI_PROJECT_DIR:/home/build-user/s
+      -v $CI_PROJECT_DIR/build/pbuilder/focal:/var/cache/pbuilder/result
+      $BUILD_CONTAINER_FOCAL
+      build_signed_package.sh
+
+build:bionic:
+  stage: build
+  tags:
+    - docker
+    - linux
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/build/pbuilder/bionic
+    expire_in: 1 week
+  script:
+    - docker pull $BUILD_CONTAINER_FOCAL
+    - mkdir -p $CI_PROJECT_DIR/build/pbuilder/bionic
+    - >
+      docker run
+      --workdir=/home/build-user/s
+      --rm
+      --privileged
+      --cap-add=sys_nice
+      --ulimit rtprio=99
+      -v /proc:/proc
+      -v $CI_PROJECT_DIR:/home/build-user/s
+      -v $CI_PROJECT_DIR/build/pbuilder/bionic:/var/cache/pbuilder/result
+      $BUILD_CONTAINER_FOCAL
+      build_signed_package.sh
+
+deploy:focal:
+  stage: deploy
+  tags:
+    - docker
+    - linux
+  dependencies:
+    - build:focal
+  script:
+    - >
+      docker run
+      --workdir=/home/build-user/s
+      --rm
+      --privileged
+      -v /proc:/proc
+      -v $CI_PROJECT_DIR:/home/build-user/s
+      -v $CI_PROJECT_DIR/build/pbuilder/focal:/var/cache/pbuilder/result
+      $BUILD_CONTAINER_FOCAL
+      upload_signed_package.sh
+  when: on_success
+  only:
+    - master
+
+deploy:bionic:
+  stage: deploy
+  tags:
+    - docker
+    - linux
+  dependencies:
+    - build:bionic
+  script:
+    - >
+      docker run
+      --workdir=/home/build-user/s
+      --rm
+      --privileged
+      -v /proc:/proc
+      -v $CI_PROJECT_DIR:/home/build-user/s
+      -v $CI_PROJECT_DIR/build/pbuilder/bionic:/var/cache/pbuilder/result
+      $BUILD_CONTAINER_BIONIC
+      upload_signed_package.sh
+  when: on_success
+  only:
+    - master
+
+tag:
+  stage: tag
+  tags:
+    - docker
+    - linux
+  dependencies:
+    - deploy:bionic
+    - deploy:focal
+  script:
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git remote set-url origin ssh://git@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
+    - ./scripts/createTag.sh
+  when: on_success
+  only:
+    - master

@@ -1,0 +1,31 @@
+Source: systemd-docker
+Section: devel
+Priority: optional
+Maintainer: Thomas Willetal <t.willetal@gmail.com>
+Uploaders: Thomas Willetal <t.willetal@gmail.com>
+Build-Depends: debhelper-compat (= 11),
+               dh-golang,
+               golang-any,
+               golang-github-docker-docker-dev,
+               golang-github-fsouza-go-dockerclient-dev
+Standards-Version: 4.2.1
+Homepage: https://github.com/ibuildthecloud/systemd-docker
+Vcs-Browser: https://tomhp.fritz.box:8888/docker/systemd-docker
+Vcs-Git: https://tomhp.fritz.box:8888/docker/systemd-docker.git
+XS-Go-Import-Path: github.com/ibuildthecloud/systemd-docker
+Testsuite: autopkgtest-pkg-go
+
+Package: systemd-docker
+Architecture: any
+Built-Using: ${misc:Built-Using}
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: wrapper for "docker run" to handle systemd quirks
+ systemd-docker is a wrapper for "docker run" so that Docker containers
+ can be sanely run under systemd. The key thing that this wrapper does is
+ move the container process from the cgroups setup by Docker to the service
+ unit's cgroup.
+ .
+ Using this wrapper containers can be managed through systemctl or the
+ docker CLI and everything should just stay in sync. Additionally one can
+ leverage all the cgroup functionality of systemd and systemd-notify.
