@@ -27,7 +27,8 @@ Supposing that a Go environment is available, the build instruction is `go get g
 executable can then be found in the Go binary directory (usually something like `$GO_ROOT/bin`) and it's called 
 `systemd-docker`.
 
-It can also be build using a stand-alone docker image, see [here](https://github.com/DonTseTse/systemd-docker_build-container)
+It can also be build using a stand-alone docker image, see [here](https://github.com/DonTseTse/systemd-docker_build-container).
+Just be sure to specify this fork with the branch name: github.com/embtom/systemd-docker@master
 
 # Use
 Both
