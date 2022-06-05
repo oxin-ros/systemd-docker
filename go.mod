@@ -1,4 +1,4 @@
-module github.com/neilgerring/systemd-docker
+module github.com/embtom/systemd-docker
 
 go 1.16
 
