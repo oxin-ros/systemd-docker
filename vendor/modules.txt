@@ -1,77 +1,137 @@
-# github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
-github.com/Azure/go-ansiterm
-github.com/Azure/go-ansiterm/winterm
-# github.com/Microsoft/go-winio v0.5.0
-## explicit
+# github.com/Microsoft/go-winio v0.5.1
+## explicit; go 1.12
 github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
-# github.com/containerd/containerd v1.5.5
+# github.com/containerd/containerd v1.6.3
+## explicit; go 1.17
+github.com/containerd/containerd/errdefs
+github.com/containerd/containerd/log
+github.com/containerd/containerd/platforms
+# github.com/docker/cli v20.10.16+incompatible
 ## explicit
-github.com/containerd/containerd/pkg/userns
-# github.com/docker/docker v20.10.3-0.20210804232411-deda3d4933d3+incompatible
+# github.com/docker/distribution v2.8.1+incompatible
 ## explicit
+github.com/docker/distribution/digestset
+github.com/docker/distribution/reference
+github.com/docker/distribution/registry/api/errcode
+# github.com/docker/docker v20.10.14+incompatible
+## explicit
+github.com/docker/docker/api
 github.com/docker/docker/api/types
 github.com/docker/docker/api/types/blkiodev
 github.com/docker/docker/api/types/container
+github.com/docker/docker/api/types/events
 github.com/docker/docker/api/types/filters
+github.com/docker/docker/api/types/image
 github.com/docker/docker/api/types/mount
 github.com/docker/docker/api/types/network
 github.com/docker/docker/api/types/registry
 github.com/docker/docker/api/types/strslice
 github.com/docker/docker/api/types/swarm
 github.com/docker/docker/api/types/swarm/runtime
+github.com/docker/docker/api/types/time
 github.com/docker/docker/api/types/versions
-github.com/docker/docker/libnetwork/ipamutils
-github.com/docker/docker/opts
-github.com/docker/docker/pkg/archive
-github.com/docker/docker/pkg/fileutils
-github.com/docker/docker/pkg/homedir
-github.com/docker/docker/pkg/idtools
-github.com/docker/docker/pkg/ioutils
-github.com/docker/docker/pkg/jsonmessage
-github.com/docker/docker/pkg/longpath
-github.com/docker/docker/pkg/pools
-github.com/docker/docker/pkg/stdcopy
-github.com/docker/docker/pkg/system
+github.com/docker/docker/api/types/volume
+github.com/docker/docker/client
+github.com/docker/docker/errdefs
 # github.com/docker/go-connections v0.4.0
+## explicit
 github.com/docker/go-connections/nat
+github.com/docker/go-connections/sockets
+github.com/docker/go-connections/tlsconfig
 # github.com/docker/go-units v0.4.0
+## explicit
 github.com/docker/go-units
-# github.com/fsouza/go-dockerclient v1.7.2
-## explicit
-github.com/fsouza/go-dockerclient
 # github.com/gogo/protobuf v1.3.2
+## explicit; go 1.15
 github.com/gogo/protobuf/proto
-# github.com/google/go-cmp v0.5.6
+# github.com/golang/protobuf v1.5.2
+## explicit; go 1.9
+github.com/golang/protobuf/proto
+github.com/golang/protobuf/ptypes
+github.com/golang/protobuf/ptypes/any
+github.com/golang/protobuf/ptypes/duration
+github.com/golang/protobuf/ptypes/timestamp
+# github.com/gorilla/mux v1.8.0
+## explicit; go 1.12
+# github.com/inconshreveable/mousetrap v1.0.0
 ## explicit
-# github.com/moby/sys/mount v0.2.0
-github.com/moby/sys/mount
-# github.com/moby/sys/mountinfo v0.4.1
-github.com/moby/sys/mountinfo
-# github.com/moby/term v0.0.0-20201216013528-df9cb8a40635
-github.com/moby/term
-github.com/moby/term/windows
+github.com/inconshreveable/mousetrap
+# github.com/moby/moby v20.10.16+incompatible
+## explicit
+# github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
+## explicit; go 1.13
 # github.com/morikuni/aec v1.0.0
-github.com/morikuni/aec
+## explicit
 # github.com/opencontainers/go-digest v1.0.0
+## explicit; go 1.13
 github.com/opencontainers/go-digest
-# github.com/opencontainers/image-spec v1.0.1
+# github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799
+## explicit
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/opencontainers/runc v1.0.1
-github.com/opencontainers/runc/libcontainer/user
 # github.com/pkg/errors v0.9.1
+## explicit
 github.com/pkg/errors
 # github.com/sirupsen/logrus v1.8.1
+## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f
-## explicit
-# github.com/weaveworks/common v0.0.0-20210722103813-e649eff5ab4a
-## explicit
-github.com/weaveworks/common/mflag
-# golang.org/x/sys v0.0.0-20210426230700-d19ff857e887
-golang.org/x/sys/execabs
+# github.com/spf13/cobra v1.4.0
+## explicit; go 1.15
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.5
+## explicit; go 1.12
+github.com/spf13/pflag
+# golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
+## explicit; go 1.17
+golang.org/x/net/internal/socks
+golang.org/x/net/proxy
+# golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
+## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.8.1
+# golang.org/x/time v0.0.0-20220411224347-583f2d630306
+## explicit
+# google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
+## explicit; go 1.11
+google.golang.org/genproto/googleapis/rpc/status
+# google.golang.org/grpc v1.46.0
+## explicit; go 1.14
+google.golang.org/grpc/codes
+google.golang.org/grpc/internal/status
+google.golang.org/grpc/status
+# google.golang.org/protobuf v1.27.1
+## explicit; go 1.9
+google.golang.org/protobuf/encoding/prototext
+google.golang.org/protobuf/encoding/protowire
+google.golang.org/protobuf/internal/descfmt
+google.golang.org/protobuf/internal/descopts
+google.golang.org/protobuf/internal/detrand
+google.golang.org/protobuf/internal/encoding/defval
+google.golang.org/protobuf/internal/encoding/messageset
+google.golang.org/protobuf/internal/encoding/tag
+google.golang.org/protobuf/internal/encoding/text
+google.golang.org/protobuf/internal/errors
+google.golang.org/protobuf/internal/filedesc
+google.golang.org/protobuf/internal/filetype
+google.golang.org/protobuf/internal/flags
+google.golang.org/protobuf/internal/genid
+google.golang.org/protobuf/internal/impl
+google.golang.org/protobuf/internal/order
+google.golang.org/protobuf/internal/pragma
+google.golang.org/protobuf/internal/set
+google.golang.org/protobuf/internal/strs
+google.golang.org/protobuf/internal/version
+google.golang.org/protobuf/proto
+google.golang.org/protobuf/reflect/protodesc
+google.golang.org/protobuf/reflect/protoreflect
+google.golang.org/protobuf/reflect/protoregistry
+google.golang.org/protobuf/runtime/protoiface
+google.golang.org/protobuf/runtime/protoimpl
+google.golang.org/protobuf/types/descriptorpb
+google.golang.org/protobuf/types/known/anypb
+google.golang.org/protobuf/types/known/durationpb
+google.golang.org/protobuf/types/known/timestamppb
+# gotest.tools/v3 v3.2.0
+## explicit; go 1.13

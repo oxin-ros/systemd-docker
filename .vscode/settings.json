@@ -1,14 +1,5 @@
 {
-    "go.useLanguageServer": true,
-    "go.languageServerExperimentalFeatures": {
-        "diagnostics": true,
-    },
-    "[go]": {
-        "editor.insertSpaces": false,
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-        },
-        "editor.suggest.snippetsPreventQuickSuggestions": false
-    },
+	"go.alternateTools": {
+		"dlv": "${workspaceFolder}/.vscode/dlv-sudo.sh"
+	},
 }
