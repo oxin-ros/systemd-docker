@@ -71,10 +71,29 @@ func startContainer(c *Context, Id string) error {
 		return err
 	}
 
-	return client.ContainerStart(context.Background(), Id, types.ContainerStartOptions{
+	err = client.ContainerStart(context.Background(), Id, types.ContainerStartOptions{
 		CheckpointID:  "",
 		CheckpointDir: "",
 	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ContainerLogs(c *Context, Id string) error {
+	client, err := c.GetClient()
+	if err != nil {
+		return err
+	}
+
+	out, err := client.ContainerLogs(context.Background(), Id, types.ContainerLogsOptions{ShowStdout: true})
+	if err != nil {
+		panic(err)
+	}
+	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	return nil
 }
 
 func createContainer(c *Context) (types.Container, error) {
