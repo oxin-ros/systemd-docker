@@ -11,7 +11,7 @@
         {
             "label": "Task:StartRootDlv",
             "command": ".vscode/dlv-sudo.sh",
-            "args": ["debug", "--api-version=2", "--headless", "--listen=:2345", "--log", "--", "--rm", "run", "busybox", "ping", "-c10", "localhost" ],
+            "args": ["debug", "--api-version=2", "--headless", "--listen=:2345", "--log", "--", "--", "--rm", "busybox", "ping", "localhost" ],
      //       "args": ["debug", "--api-version=2", "--headless", "--listen=:2345", "--log", "--", "--help" ],
             "options": {
                 "env": {

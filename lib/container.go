@@ -1,7 +1,9 @@
 package lib
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -9,8 +11,13 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 )
+
+func isEmty(s types.Container) bool {
+	return len(s.ID) == 0
+}
 
 func lookupByName(containers []types.Container, name string) types.Container {
 	searchName := "/" + name
@@ -82,21 +89,59 @@ func startContainer(c *Context, Id string) error {
 	return nil
 }
 
+func waitExitOrRemoved(c *Context, containerID string, waitRemove bool) <-chan int {
+	client := c.Client
+
+	condition := container.WaitConditionNextExit
+	if waitRemove {
+		condition = container.WaitConditionRemoved
+	}
+
+	resultC, errC := client.ContainerWait(context.Background(), containerID, condition)
+
+	statusC := make(chan int)
+	go func() {
+		select {
+		case result := <-resultC:
+			if result.Error != nil {
+				statusC <- 125
+			} else {
+				statusC <- int(result.StatusCode)
+			}
+		case err := <-errC:
+			c.Log.Errorf("error waiting for container: %v", err)
+			statusC <- 125
+		}
+	}()
+
+	return statusC
+}
+
 func ContainerLogs(c *Context, Id string) error {
 	client, err := c.GetClient()
 	if err != nil {
 		return err
 	}
 
-	out, err := client.ContainerLogs(context.Background(), Id, types.ContainerLogsOptions{ShowStdout: true})
-	if err != nil {
-		panic(err)
-	}
-	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	go func() {
+		out, err := client.ContainerLogs(context.Background(), Id, types.ContainerLogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Follow:     true,
+			Timestamps: false,
+		})
+		_ = err
+		defer out.Close()
+		scanner := bufio.NewScanner(out)
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+	}()
+
 	return nil
 }
 
-func createContainer(c *Context) (types.Container, error) {
+func CreateContainer(c *Context) (types.Container, error) {
 
 	client, err := c.GetClient()
 	if err != nil {
@@ -158,10 +203,6 @@ func createContainer(c *Context) (types.Container, error) {
 	return containers[0], nil
 }
 
-func isEmty(s types.Container) bool {
-	return len(s.ID) == 0
-}
-
 func RunContainer(c *Context) error {
 
 	var container types.Container
@@ -184,9 +225,9 @@ func RunContainer(c *Context) error {
 	}
 
 	if isEmty(container) {
-		container, err = createContainer(c)
+		container, err = CreateContainer(c)
 		if err != nil {
-			c.Log.Errorf("failed to createContainer : %s\n", err)
+			c.Log.Errorf("failed to CreateContainer : %s\n", err)
 			return err
 		}
 	}
@@ -199,7 +240,6 @@ func RunContainer(c *Context) error {
 	if inspect.ContainerJSONBase.State.Running {
 		c.Id = inspect.ID
 		c.Pid = inspect.State.Pid
-		return nil
 	} else {
 		err = startContainer(c, inspect.ID)
 		if err != nil {
@@ -214,6 +254,31 @@ func RunContainer(c *Context) error {
 
 		c.Id = inspect.ID
 		c.Pid = inspect.State.Pid
+	}
+
+	if c.Logs {
+		err = ContainerLogs(c, inspect.ID)
+	}
+	return err
+}
+
+func WaitFinished(c *Context) error {
+	statusC := waitExitOrRemoved(c, c.Id, c.Rm)
+	exitCode := <-statusC
+	if exitCode != 0 {
+		return fmt.Errorf("container stopped with error value %d", exitCode)
+	}
+	return nil
+}
+
+func StopContainer(c *Context) error {
+	if len(c.Id) == 0 {
 		return nil
 	}
+
+	client, err := c.GetClient()
+	if err != nil {
+		return err
+	}
+	return client.ContainerStop(context.Background(), c.Id, nil)
 }

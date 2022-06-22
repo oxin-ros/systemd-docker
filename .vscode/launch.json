@@ -12,6 +12,7 @@
             "program": "${workspaceFolder}",
             "env": {
                 "NOTIFY_SOCKET" : "/tmp/test.sock",
+                "DEBUG_AS_ROOT" : true,
             },
             "args": [ "-p", "/tmp/pid",
                       "--",

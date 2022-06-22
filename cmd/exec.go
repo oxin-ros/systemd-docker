@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
 
 	"github.com/embtom/systemd-docker/lib"
@@ -21,6 +22,8 @@ Additionally you can leverage all the cgroup functionality of systemd and system
     --name registry --publish 5000:5000 --env 'REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data' registry:latest`,
 		RunE:                  run,
 		DisableFlagsInUseLine: true,
+		SilenceUsage:          true,
+		SilenceErrors:         true,
 	}
 
 	c = &lib.Context{
@@ -91,11 +94,31 @@ func run(_ *cobra.Command, args []string) error {
 		return err
 	}
 
+	moved, err := lib.MoveCgroups(c)
+	if err != nil {
+		return err
+	}
+	_ = moved
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs)
+	go func() {
+		s := <-sigs
+		c.Log.Infof("Recived Signal : %s", s)
+		lib.StopContainer(c)
+	}()
+
+	err = lib.WaitFinished(c)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if err != nil {
 		c.Log.Fatalf(err.Error())
 		os.Exit(1)
 	}

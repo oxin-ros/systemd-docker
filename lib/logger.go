@@ -36,7 +36,7 @@ func NewLogger() *logger {
 }
 
 func (l *logger) printf(logLevel string, format string, v ...interface{}) {
-	l.log.Printf(fmt.Sprintf("<%s>%s", logLevel, format), v...)
+	l.log.Printf(fmt.Sprintf("<%s> %s", logLevel, format), v...)
 }
 
 func (l *logger) Fatalf(format string, v ...interface{}) {
