@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/embtom/systemd-docker/lib"
 	"github.com/spf13/cobra"
@@ -69,7 +70,11 @@ func run(_ *cobra.Command, args []string) error {
 		}
 	}
 
-	lib.SetupSystemdNotify(c)
+	var err error
+	c.Notifier, err = lib.AddNotify(c)
+	if err != nil {
+		return err
+	}
 
 	if c.Env {
 		for _, val := range os.Environ() {
@@ -79,7 +84,7 @@ func run(_ *cobra.Command, args []string) error {
 		}
 	}
 
-	err := lib.RunContainer(c)
+	err = lib.RunContainer(c)
 	if err != nil {
 		return err
 	}
@@ -94,23 +99,36 @@ func run(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	moved, err := lib.MoveCgroups(c)
+	_, err = lib.MoveCgroups(c)
 	if err != nil {
-		return err
+		c.Log.Warnf(err.Error())
 	}
-	_ = moved
+
+	c.Monitor = lib.NewMonitor()
 
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs)
+	signal.Notify(sigs,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
 	go func() {
 		s := <-sigs
 		c.Log.Infof("Recived Signal : %s", s)
 		lib.StopContainer(c)
+		if c.Monitor != nil {
+			c.Monitor.StopMonitor()
+		}
+
 	}()
 
-	err = lib.WaitFinished(c)
-	if err != nil {
-		return err
+	if c.Monitor != nil {
+		c.Monitor.RunMonitor(c)
+	} else {
+		err = lib.WaitFinished(c)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

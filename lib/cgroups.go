@@ -19,7 +19,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"strconv"
@@ -139,7 +138,7 @@ func MoveCgroups(c *Context) (bool, error) {
 			}
 
 			currentFullPath := constructCgroupPath(nsName, currentPath)
-			log.Printf("Moving pid %s to %s\n", pid, currentFullPath)
+			c.Log.Infof("Moving pid %s to %s\n", pid, currentFullPath)
 			err = writePid(pid, currentFullPath)
 			if err != nil {
 				return false, err
