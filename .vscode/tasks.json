@@ -4,9 +4,34 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build systemd-docker",
+            "label": "Task:Build systemd-docker",
             "type": "shell",
-            "command": "go build -mod vendor -o Build/systemd-docker"
+            "command": "make build"
+        },
+        {
+            "label": "Task:StartRootDlv",
+            "command": ".vscode/dlv-sudo.sh",
+            "args": ["debug", "--api-version=2", "--headless", "--listen=:2345", "--log", "--", "--", "--rm", "busybox", "ping", "localhost" ],
+     //       "args": ["debug", "--api-version=2", "--headless", "--listen=:2345", "--log", "--", "--help" ],
+            "options": {
+                "env": {
+                    "DEBUG_AS_ROOT": "true"
+                }
+            },
+            "type": "shell",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "Error: ([^(]+)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\): (.*)$",
+                    "file": 1,
+                    "location": 2,
+                    "message": 3
+                },
+                "background": {
+                    "beginsPattern": "API server listening",
+                    "endsPattern": "20"
+                }
+            }
         }
     ]
 }

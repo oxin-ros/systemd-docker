@@ -1,0 +1,19 @@
+[Unit]
+Description=systemd-docker test
+After=docker.service
+Requires=docker.service
+
+[Service]
+#--- if systemd-notify is used
+Type=notify
+NotifyAccess=all
+#------------------------
+ExecStart=systemd-docker --notify -l=0 -- --rm --name bb busybox ping localhost
+Restart=always
+RestartSec=10s
+TimeoutStartSec=120
+TimeoutStopSec=15
+WatchdogSec=5s
+
+[Install]
+WantedBy=multi-user.target

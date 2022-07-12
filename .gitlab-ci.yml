@@ -26,8 +26,6 @@ build:focal:
       --workdir=/home/build-user/s
       --rm
       --privileged
-      --cap-add=sys_nice
-      --ulimit rtprio=99
       -v /proc:/proc
       -v $CI_PROJECT_DIR:/home/build-user/s
       -v $CI_PROJECT_DIR/build/pbuilder/focal:/var/cache/pbuilder/result
@@ -51,8 +49,6 @@ build:bionic:
       --workdir=/home/build-user/s
       --rm
       --privileged
-      --cap-add=sys_nice
-      --ulimit rtprio=99
       -v /proc:/proc
       -v $CI_PROJECT_DIR:/home/build-user/s
       -v $CI_PROJECT_DIR/build/pbuilder/bionic:/var/cache/pbuilder/result
