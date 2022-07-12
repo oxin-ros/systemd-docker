@@ -36,7 +36,11 @@ func AddNotify(c *Context) (*Notifier, error) {
 		c.Args = append(newArgs, c.Args...)
 	}
 
-	return Open(NotifySocket)
+	if len(NotifySocket) > 0 {
+		return Open(NotifySocket)
+	} else {
+		return nil, nil
+	}
 }
 
 func Notify(c *Context) error {

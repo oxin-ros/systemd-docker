@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 export HOME = $(CURDIR)
 DH_BUILDDIR = obj-$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+export DESTROOT=$(CURDIR)/debian/systemd-docker
 
 %:
 	dh $@ --buildsystem=golang --with=golang
@@ -12,4 +13,4 @@ override_dh_auto_test:
 
 override_dh_auto_install:
 	dh_auto_install -- --no-source
-
+	install -D -m 644 example/busybox.service $(DESTROOT)/usr/share/systemd-docker

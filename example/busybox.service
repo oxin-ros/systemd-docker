@@ -8,11 +8,12 @@ Requires=docker.service
 Type=notify
 NotifyAccess=all
 #------------------------
-ExecStart=/media/work_data/05_docker/systemd-docker/Build/systemd-docker --notify -- --rm --name bb busybox ping localhost
+ExecStart=systemd-docker --notify -l=0 -- --rm --name bb busybox ping localhost
 Restart=always
 RestartSec=10s
 TimeoutStartSec=120
 TimeoutStopSec=15
+WatchdogSec=5s
 
 [Install]
 WantedBy=multi-user.target

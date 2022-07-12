@@ -19,8 +19,6 @@ var (
 		Long: `systemd-docker is a wrapper for 'docker run' so that you can sanely run Docker containers under systemd.
 Using this wrapper you can manage containers through systemctl or the docker CLI.
 Additionally you can leverage all the cgroup functionality of systemd and systemd-notify.`,
-		Example: `systemd-docker --pid-file=/tmp/registry-pid --networks mqtt_proxy,prometheus_proxy:192.168.98.4 -- 
-    --name registry --publish 5000:5000 --env 'REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data' registry:latest`,
 		RunE:                  run,
 		DisableFlagsInUseLine: true,
 		SilenceUsage:          true,
