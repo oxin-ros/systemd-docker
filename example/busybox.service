@@ -8,7 +8,7 @@ Requires=docker.service
 Type=notify
 NotifyAccess=all
 #------------------------
-ExecStart=systemd-docker --notify -l=0 -- --rm --name bb busybox ping localhost
+ExecStart=systemd-docker --notify -l=0 -- --rm --name %n busybox ping localhost
 Restart=always
 RestartSec=10s
 TimeoutStartSec=120
