@@ -42,11 +42,9 @@ where
 - `/path/to/systemd-docker` is the absolute path of the `systemd-docker` executable
 - `<systemd-docker_options>` are the [flags to configure systemd-docker](#systemd-docker-options)
 - `<docker-run_parameters>` are forwarded to `docker run`. A few restrictions apply, see section
-  [Docker run res+
-  trictions](#docker-restrictions)
+  [Docker run restrictions](#docker-restrictions)
 
-The example below shows a typical `systemd` unit file using `systemd-docker` (supposed to be in `/usr/bin`), running a
-Nginx container:
+The example below shows a typical `systemd` unit file using `systemd-docker` (supposed to be in `/usr/bin`), running a busybox ping container:
 ```ini
 [Unit]
 Description=systemd-docker test
@@ -119,6 +117,11 @@ Please be aware that `systemd-notify` comes with its own quirks - more info can 
 [mailing list thread](http://comments.gmane.org/gmane.comp.sysutils.systemd.devel/18649).  In short, `systemd-notify` is not reliable because often
 the child dies before `systemd` has time to determine which cgroup it is a member of.
 
+## Systemd watchdog
+The systemd watchdog can be used to monitor a running container. The `systemd`
+[documentation](https://www.freedesktop.org/software/systemd/man/systemd.service.html#WatchdogSec=) explains the configuration options.
+
+If the watchdog interval is set, the systemd-docker app inspects if the container is running and sends WATCHDOG=1 to `systemd`
 # Systemd-docker options
 ## Cgroups
 By default all application cgroups are moved to systemd. It's also possible to control individually which cgroups are
