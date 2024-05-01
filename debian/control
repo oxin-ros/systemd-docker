@@ -8,10 +8,10 @@ Build-Depends: debhelper-compat (= 11),
                golang-any,
                golang-github-docker-docker-dev,
 Standards-Version: 4.2.1
-Homepage: https://github.com/embtom/systemd-docker
+Homepage: https://github.com/oxin-ros/systemd-docker
 Vcs-Browser: https://tomhp.fritz.box:8888/docker/systemd-docker
 Vcs-Git: https://tomhp.fritz.box:8888/docker/systemd-docker.git
-XS-Go-Import-Path: github.com/embtom/systemd-docker
+XS-Go-Import-Path: github.com/oxin-ros/systemd-docker
 Testsuite: autopkgtest-pkg-go
 
 Package: systemd-docker

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/embtom/systemd-docker/lib"
+	"github.com/oxin-ros/systemd-docker/lib"
 	"github.com/spf13/cobra"
 )
 

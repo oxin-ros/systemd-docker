@@ -1,4 +1,4 @@
-#go mod init github.com/embtom/systemd-docker
+#go mod init github.com/oxin-ros/systemd-docker
 
 
 vendor:
