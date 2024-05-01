@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/embtom/systemd-docker/cmd"
+	"github.com/oxin-ros/systemd-docker/cmd"
 )
 
 func main() {
