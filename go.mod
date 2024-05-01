@@ -1,4 +1,4 @@
-module github.com/embtom/systemd-docker
+module github.com/oxin-ros/systemd-docker
 
 go 1.18
 
